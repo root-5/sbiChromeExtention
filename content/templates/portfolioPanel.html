@@ -1,0 +1,195 @@
+<!-- ポートフォリオパネルのテンプレート -->
+<div id="jpyAccountPanel">
+    <!-- 時刻表示エリア -->
+    <div class="flex">
+        <h1>日本円建て口座ポートフォリオ</h1>
+        <div id="jpyAccountClock">
+            <span class="clockLabel">現在時刻:</span>
+            <span class="clockValue" data-bind="currentTime">--:--:--</span>
+            <span class="clockSeparator">|</span>
+            <span class="clockLabel">最終更新:</span>
+            <span class="clockValue" data-bind="lastUpdateTime">--:--:--</span>
+        </div>
+    </div>
+    <div class="flex">
+        <!-- 円グラフコンテナ -->
+        <div id="jpyAccountPieChartContainer">
+            <canvas id="jpyAccountPieChartCanvas"></canvas>
+        </div>
+        <div>
+            <!-- ポートフォリオサマリーコンテナ -->
+            <div id="jpyAccountSummaryContainer">
+                <h2>サマリー</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>純資産</th>
+                            <th>総資産</th>
+                            <th>レバレッジ</th>
+                            <th>買付余力</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="amount" data-bind="netTotalMarketCap">-</td>
+                            <td class="amount" data-bind="totalMarketCap">-</td>
+                            <td class="amount" data-bind="leverage">-</td>
+                            <td class="amount" data-bind="buyingPower">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- ポートフォリオテーブルコンテナ -->
+            <div id="jpyAccountTableContainer">
+                <h2>ポートフォリオ</h2>
+                <table>
+                    <!-- テーブルヘッダー -->
+                    <thead>
+                        <tr>
+                            <th>コード</th>
+                            <th>銘柄名</th>
+                            <th>株数</th>
+                            <th>取得価格</th>
+                            <th>現在価格</th>
+                            <th>前日比</th>
+                            <th>損益</th>
+                            <th>時価総額</th>
+                        </tr>
+                    </thead>
+                    <!-- テーブルボディ（データバインディング用） -->
+                    <tbody>
+                        <tr data-bind="jpyAccountTableRow" class="totalRow">
+                            <td data-bind="code" class="code"></td>
+                            <td data-bind="name" class="name"></td>
+                            <td data-bind="quantity" class="quantity"></td>
+                            <td data-bind="buyPrice" class="buyPrice"></td>
+                            <td data-bind="currentPrice" class="currentPrice"></td>
+                            <td data-bind="dayChange" class="dayChange">
+                                <span data-bind="dayChangeRate" class="dayChangeRate"></span><span
+                                    data-bind="dayChangeRate" class="percent">%</span>
+                            </td>
+                            <td data-bind="profitAndLoss" class="profitAndLoss">
+                                <span data-bind="profitAndLossDiff" class="profitAndLossDiff"></span>
+                            </td>
+                            <td data-bind="marketCap" class="marketCap"></td>
+                        </tr>
+                    </tbody>
+                    <!-- テーブルフッター -->
+                    <tfoot>
+                        <tr class="totalRow">
+                            <td colspan="6">合計</td>
+                            <td class="profit" data-bind="totalProfit">-</td>
+                            <td class="amount" data-bind="totalMarketCap">-</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="flex">
+        <!-- 取引履歴テーブルコンテナ（当日約定含む） -->
+        <div id="jpyAccountTradingLogContainer">
+            <h2>取引履歴</h2>
+            <div class="table-wrapper">
+                <table>
+                    <!-- テーブルヘッダー -->
+                    <thead>
+                        <tr>
+                            <th>日付</th>
+                            <th>コード</th>
+                            <th>銘柄名</th>
+                            <th>取引</th>
+                            <th>株数</th>
+                            <th>価格</th>
+                        </tr>
+                    </thead>
+                    <!-- テーブルボディ（データバインディング用） -->
+                    <tbody>
+                        <tr data-bind="jpyAccountTradingLogRow">
+                            <td data-bind="date" class="date"></td>
+                            <td data-bind="code" class="code"></td>
+                            <td data-bind="name" class="name"></td>
+                            <td data-bind="tradeType" class="tradeType"></td>
+                            <td data-bind="quantity" class="quantity"></td>
+                            <td data-bind="price" class="price"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- 株価変化率と売買数テーブルコンテナ -->
+        <div id="priceChangeTableContainer">
+            <h2>株価変化率と売買数（過去10日間）</h2>
+            <div class="table-wrapper">
+                <table>
+                    <!-- テーブルヘッダー -->
+                    <thead>
+                        <tr>
+                            <th rowspan="2" class="code-header">コード</th>
+                            <th rowspan="2" class="name-header">銘柄名</th>
+                            <th colspan="2" data-bind="priceChangeDayLabel1">前日</th>
+                            <th colspan="2" data-bind="priceChangeDayLabel2">2日前</th>
+                            <th colspan="2" data-bind="priceChangeDayLabel3">3日前</th>
+                            <th colspan="2" data-bind="priceChangeDayLabel4">4日前</th>
+                            <th colspan="2" data-bind="priceChangeDayLabel5">5日前</th>
+                            <th colspan="2" data-bind="priceChangeDayLabel6">6日前</th>
+                            <th colspan="2" data-bind="priceChangeDayLabel7">7日前</th>
+                            <th colspan="2" data-bind="priceChangeDayLabel8">8日前</th>
+                            <th colspan="2" data-bind="priceChangeDayLabel9">9日前</th>
+                            <th colspan="2" data-bind="priceChangeDayLabel10">10日前</th>
+                        </tr>
+                        <tr>
+                            <th>変化率</th>
+                            <th>売買数</th>
+                            <th>変化率</th>
+                            <th>売買数</th>
+                            <th>変化率</th>
+                            <th>売買数</th>
+                            <th>変化率</th>
+                            <th>売買数</th>
+                            <th>変化率</th>
+                            <th>売買数</th>
+                            <th>変化率</th>
+                            <th>売買数</th>
+                            <th>変化率</th>
+                            <th>売買数</th>
+                            <th>変化率</th>
+                            <th>売買数</th>
+                            <th>変化率</th>
+                            <th>売買数</th>
+                            <th>変化率</th>
+                            <th>売買数</th>
+                        </tr>
+                    </thead>
+                    <!-- テーブルボディ（データバインディング用） -->
+                    <tbody>
+                        <tr data-bind="priceChangeTableRow">
+                            <td data-bind="code" class="code"></td>
+                            <td data-bind="name" class="name"></td>
+                            <td data-bind="changeRate1" class="changeRate"></td>
+                            <td data-bind="tradeQuantity1" class="tradeQuantity"></td>
+                            <td data-bind="changeRate2" class="changeRate"></td>
+                            <td data-bind="tradeQuantity2" class="tradeQuantity"></td>
+                            <td data-bind="changeRate3" class="changeRate"></td>
+                            <td data-bind="tradeQuantity3" class="tradeQuantity"></td>
+                            <td data-bind="changeRate4" class="changeRate"></td>
+                            <td data-bind="tradeQuantity4" class="tradeQuantity"></td>
+                            <td data-bind="changeRate5" class="changeRate"></td>
+                            <td data-bind="tradeQuantity5" class="tradeQuantity"></td>
+                            <td data-bind="changeRate6" class="changeRate"></td>
+                            <td data-bind="tradeQuantity6" class="tradeQuantity"></td>
+                            <td data-bind="changeRate7" class="changeRate"></td>
+                            <td data-bind="tradeQuantity7" class="tradeQuantity"></td>
+                            <td data-bind="changeRate8" class="changeRate"></td>
+                            <td data-bind="tradeQuantity8" class="tradeQuantity"></td>
+                            <td data-bind="changeRate9" class="changeRate"></td>
+                            <td data-bind="tradeQuantity9" class="tradeQuantity"></td>
+                            <td data-bind="changeRate10" class="changeRate"></td>
+                            <td data-bind="tradeQuantity10" class="tradeQuantity"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

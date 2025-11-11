@@ -1,0 +1,54 @@
+{
+    "manifest_version": 3,
+    "name": "SBI証券ポートフォリオ拡張機能",
+    "version": "1.0.0",
+    "description": "SBI証券のポートフォリオ、取引履歴を独自UIで表示する拡張機能",
+    "permissions": [
+        "activeTab",
+        "scripting"
+    ],
+    "host_permissions": [
+        "https://site3.sbisec.co.jp/*",
+        "http://STOCK_INFO_SERVER/*"
+    ],
+    "background": {
+        "service_worker": "background/serviceWorker.js",
+        "type": "module"
+    },
+    "content_scripts": [ // ウェブページに自動的に注入されるスクリプトやスタイルシートを定義
+        {
+            "matches": [
+                "https://site3.sbisec.co.jp/*"
+            ],
+            "js": [
+                "content/modules/templateEngine.js",
+                "content/modules/externalResource.js",
+                "content/modules/jpyAccount.js",
+                "content/contentScript.js",
+                "libs/chart.min.js"
+            ],
+            "css": [
+                "content/contentStyles.css"
+            ]
+        }
+    ],
+    "action": {
+        "default_title": "SBI証券ポートフォリオ",
+        "default_icon": {
+            "16": "icons/favicon.ico"
+        }
+    },
+    "icons": {
+        "16": "icons/favicon.ico"
+    },
+    "web_accessible_resources": [ // ウェブページからアクセス可能なリソースを定義
+        {
+            "resources": [
+                "content/templates/*.html"
+            ],
+            "matches": [
+                "https://site3.sbisec.co.jp/*"
+            ]
+        }
+    ]
+}
