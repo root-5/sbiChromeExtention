@@ -59,7 +59,7 @@ class JpyAccount {
                 existing.marketCap += stock.marketCap;
                 existing.profitAndLoss += stock.profitAndLoss;
                 // 加重平均で取得価格を再計算
-                existing.buyPrice = existing.marketCap / existing.quantity;
+                existing.buyPrice = (existing.buyPrice * (existing.quantity - stock.quantity) + stock.buyPrice * stock.quantity) / existing.quantity;
             } else {
                 mergedDataMap.set(stock.code, { ...stock });
             }
@@ -278,7 +278,7 @@ class JpyAccount {
         JpyAccount._baseTradingLogData = tradingLogData;
 
         // 当日約定のキャッシュがあれば先頭に表示
-        const cachedTodayExecutions = (JpyAccount._todayExecutionCache || []).map((entry) => entry.row);
+        const cachedTodayExecutions = JpyAccount._todayExecutionDisplayRows || [];
 
         // テーブル行をデータバインディング
         TemplateEngine.bindTableRows('jpyAccountTradingLogRow', [...cachedTodayExecutions, ...tradingLogData]);
@@ -297,41 +297,87 @@ class JpyAccount {
             return;
         }
 
-        // 当日約定のキャッシュを初期化
-        JpyAccount._todayExecutionCache = JpyAccount._todayExecutionCache || [];
-        const existingKeys = new Set(JpyAccount._todayExecutionCache.map((entry) => entry.key));
+        // 初回または日付が変わった場合はキャッシュをリセット
+        const firstDate = todayExecutions[0]?.date;
+        if (firstDate) {
+            if (JpyAccount._todayExecutionDate !== firstDate) {
+                JpyAccount._todayExecutionDate = firstDate;
+                JpyAccount._processedTodayExecutionKeys = new Set();
+                JpyAccount._todayExecutionCache = new Map();
+                JpyAccount._todayExecutionDisplayRows = [];
+            }
+        }
 
-        // 当日約定データを変換し、未登録のデータのみ抽出
-        const newEntries = todayExecutions
-            .map((item) => {
-                const row = {
-                    date: item.date,
-                    code: item.code,
-                    name: item.name,
-                    tradeType: item.tradeType.includes('買') ? '買' : '売',
-                    quantity: Number(item.quantity).toLocaleString(),
-                    price: `¥${Number(item.price).toLocaleString()}`,
+        JpyAccount._processedTodayExecutionKeys = JpyAccount._processedTodayExecutionKeys || new Set();
+        JpyAccount._todayExecutionCache = JpyAccount._todayExecutionCache || new Map();
+
+        let hasNewEntry = false;
+
+        todayExecutions.forEach((item) => {
+            const rawKey = `${item.date}|${item.code}|${item.tradeType}|${item.quantity}|${item.price}|${item.fee}`;
+            if (JpyAccount._processedTodayExecutionKeys.has(rawKey)) return;
+
+            JpyAccount._processedTodayExecutionKeys.add(rawKey);
+            hasNewEntry = true;
+
+            const mapKey = `${item.date}|${item.code}`;
+            const absQuantity = Math.abs(Number(item.quantity) || 0);
+            if (!absQuantity) return;
+
+            const existing = JpyAccount._todayExecutionCache.get(mapKey) || {
+                code: item.code,
+                name: item.name,
+                date: item.date,
+                weightedPriceSum: 0,
+                totalAbsQuantity: 0,
+                netQuantity: 0,
+            };
+
+            const sign = item.tradeType.includes('買') ? 1 : -1;
+            existing.weightedPriceSum += Number(item.price) * absQuantity;
+            existing.totalAbsQuantity += absQuantity;
+            existing.netQuantity += sign * absQuantity;
+            existing.date = item.date;
+            existing.name = item.name;
+
+            JpyAccount._todayExecutionCache.set(mapKey, existing);
+
+            // キャッシュが肥大化しないように上限を設定（最古の要素を削除）
+            if (JpyAccount._todayExecutionCache.size > 100) {
+                const oldestKey = JpyAccount._todayExecutionCache.keys().next().value;
+                if (oldestKey) {
+                    JpyAccount._todayExecutionCache.delete(oldestKey);
+                }
+            }
+        });
+
+        if (!hasNewEntry) return;
+
+        // 表示用データを生成
+        const todayExecutionRows = Array.from(JpyAccount._todayExecutionCache.values())
+            .map((entry) => {
+                const avgPrice = entry.totalAbsQuantity ? entry.weightedPriceSum / entry.totalAbsQuantity : 0;
+                const tradeTypeLabel = entry.netQuantity > 0 ? '買' : entry.netQuantity < 0 ? '売' : '売買';
+                const quantityText = Math.abs(entry.netQuantity).toLocaleString();
+                const priceText = `¥${avgPrice.toLocaleString('ja-JP', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+
+                return {
+                    date: entry.date,
+                    code: entry.code,
+                    name: entry.name,
+                    tradeType: tradeTypeLabel,
+                    quantity: quantityText,
+                    price: priceText,
                 };
-                const key = `${item.date}|${item.code}|${row.tradeType}|${row.quantity}|${row.price}`;
-                return { key, row };
             })
-            .filter((entry) => !existingKeys.has(entry.key));
+            .sort((a, b) => {
+                if (a.date !== b.date) return b.date.localeCompare(a.date);
+                return a.code.localeCompare(b.code);
+            });
 
-        // 追加すべき新規データが無い場合は終了
-        if (!newEntries.length) return;
-
-        // 新規データをキャッシュの先頭に追加（最新順を維持）
-        for (let i = newEntries.length - 1; i >= 0; i -= 1) {
-            JpyAccount._todayExecutionCache.unshift(newEntries[i]);
-        }
-
-        // キャッシュが肥大化しないように上限を設定
-        if (JpyAccount._todayExecutionCache.length > 100) {
-            JpyAccount._todayExecutionCache = JpyAccount._todayExecutionCache.slice(0, 100);
-        }
+        JpyAccount._todayExecutionDisplayRows = todayExecutionRows;
 
         // 表示用データを結合（当日約定 + 取引履歴）
-        const todayExecutionRows = JpyAccount._todayExecutionCache.map((entry) => entry.row);
         const tableTextData = [...todayExecutionRows, ...JpyAccount._baseTradingLogData];
 
         // テーブル行をデータバインディング
