@@ -62,6 +62,17 @@ class TemplateEngine {
     }
 
     /**
+     * 時刻表示を更新する関数
+     * @param {string} target data-bind属性のターゲット名
+     */
+    static updateTime(target) {
+        const now = new Date();
+        TemplateEngine.bindData({
+            [target]: now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        });
+    }
+
+    /**
      * テーブル行のデータバインディング
      * @param {string} targetTableRowName ターゲットのテーブル行の data-bind 名
      * @param {Array} tableTextData バインドするデータオブジェクト配列（例：[ { bindTarget: textContent }, ...]）

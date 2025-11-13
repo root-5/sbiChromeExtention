@@ -16,9 +16,9 @@ if (title.includes('ポートフォリオ')) main();
  */
 async function main() {
     // テンプレートを読み込み
-    const targetElementID = 'TIMEAREA01';
-    const templetePath = 'content/templates/portfolioPanel.html';
-    await TemplateEngine.setTemplate(targetElementID, templetePath);
+    const TARGET_ELE_ID = 'TIMEAREA01';
+    const TEMPLATE = 'content/templates/portfolioPanel.html';
+    await TemplateEngine.setTemplate(TARGET_ELE_ID, TEMPLATE);
 
     // 初期描画
     const { tradingLog } = await JpyAccount.extractAccountDataJustOnce();
@@ -26,7 +26,7 @@ async function main() {
 
     // 最初の更新（取引履歴を渡す）
     await updateJpyAccount(tradingLog);
-    updateTime('lastUpdateTime');
+    TemplateEngine.updateTime('lastUpdateTime');
 
     // 1秒ごとに定期実行するスケジューラーをセット（取引履歴を渡す）
     const scheduler = setInterval(() => schedulerTask(tradingLog), 1000);
@@ -59,31 +59,18 @@ function schedulerTask(tradingLog) {
     const now = new Date();
 
     // 時刻表示を更新
-    updateTime('currentTime');
+    TemplateEngine.updateTime('currentTime');
 
-    // 土日は処理をスキップ
+    // 平日の場中（9:00〜15:30）以外は処理をスキップ
     const day = now.getDay();
-    // if (day === 0 || day === 6) return;
-
-    // 場中（9:00〜15:30）以外は処理をスキップ
     const hours = now.getHours();
     const minutes = now.getMinutes();
+    // if (day === 0 || day === 6) return;
     // if (hours < 9 || (hours === 15 && minutes > 30) || hours > 15) return;
 
     // 毎分0秒に口座情報と最終更新時刻を更新
     if (now.getSeconds() === 0) {
         updateJpyAccount(tradingLog);
-        updateTime('lastUpdateTime');
+        TemplateEngine.updateTime('lastUpdateTime');
     }
-}
-
-/**
- * 時刻表示を更新する関数
- * @param {string} target data-bind属性のターゲット名
- */
-function updateTime(target) {
-    const now = new Date();
-    TemplateEngine.bindData({
-        [target]: now.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-    });
 }
