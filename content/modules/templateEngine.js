@@ -85,11 +85,13 @@ class TemplateEngine {
         // 更新後の行要素を再取得してデータをバインド
         const updatedRowElements = document.querySelectorAll(`[data-bind="${targetTableRowName}"]`);
         tableTextData.forEach((rowData, i) => {
-            Object.keys(rowData).forEach((key) => {
-                const cell = updatedRowElements[i].querySelector(`[data-bind="${key}"]`);
-                if (!cell) return;
+            const targetRow = updatedRowElements[i];
+            const boundKeys = new Set(Object.keys(rowData));
 
-                cell.textContent = rowData[key];
+            Object.keys(rowData).forEach((key) => {
+                const cell = targetRow.querySelector(`[data-bind="${key}"]`);
+                if (!cell) return;
+                cell.textContent = rowData[key] ?? '';
                 cell.classList.remove('positive', 'negative');
 
                 // "+"や"-"のクラスを設定（CSSの色分け用）
@@ -99,6 +101,19 @@ class TemplateEngine {
                 } else if (textValue.startsWith('-') || textValue.startsWith('売')) {
                     cell.classList.add('negative');
                 }
+            });
+
+            // 今回バインドされなかった要素は既存値をクリア
+            targetRow.querySelectorAll('[data-bind]').forEach((element) => {
+                const bindKey = element.getAttribute('data-bind');
+                if (bindKey === targetTableRowName) return;
+                if (boundKeys.has(bindKey)) return;
+
+                // 子要素にさらに data-bind がある場合は親要素をクリアしない
+                if (element.querySelector('[data-bind]')) return;
+
+                element.textContent = '';
+                element.classList.remove('positive', 'negative');
             });
         });
     }
