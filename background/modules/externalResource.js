@@ -29,7 +29,9 @@ export async function fetchClosePriceData(codes, daysAgo = 15) {
     const codeParam = codes.filter((code) => code).join(',');
 
     // APIエンドポイントのURL構築
-    const url = `http://STOCK_INFO_SERVER/closeprice?code=${codeParam}&ymd=${startDateStr}~${endDateStr}`;
+    const res = await fetch(chrome.runtime.getURL('env.json'));
+    const env = await res.json();
+    const url = `${env.API_ENDPOINT}/closeprice?code=${codeParam}&ymd=${startDateStr}~${endDateStr}`;
 
     try {
         const response = await fetch(url);

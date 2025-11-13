@@ -8,8 +8,8 @@
         "scripting"
     ],
     "host_permissions": [
-        "https://site3.sbisec.co.jp/*",
-        "http://STOCK_INFO_SERVER/*"
+        "http://*/*",
+        "https://*/*"
     ],
     "background": {
         "service_worker": "background/serviceWorker.js",
@@ -44,7 +44,8 @@
     "web_accessible_resources": [ // ウェブページからアクセス可能なリソースを定義
         {
             "resources": [
-                "content/templates/*.html"
+                "content/templates/*.html",
+                "env.json"
             ],
             "matches": [
                 "https://site3.sbisec.co.jp/*"
