@@ -45,9 +45,9 @@ async function updateJpyAccount(tradingLog = []) {
     const { closePriceData } = await ExternalResource.fetchClosePriceData(stocks, numberOfDays);
 
     // UI更新（チャートはグローバル変数で保持）
-    jpyAccountChart = JpyAccount.drawChart(jpyAccountTableData, jpyAccountChart);
+    jpyAccountChart = JpyAccount.drawCircleChart(jpyAccountTableData, jpyAccountChart);
     JpyAccount.drawPortfolioTable({ buyingPower, cashBalance, stocks }, jpyAccountTableData);
-    JpyAccount.addTodayExecutionToTradingLogTable(todayExecution);
+    JpyAccount.drawTodayExecutionToTradingLogTable(todayExecution);
     JpyAccount.drawPriceChangeTable(closePriceData, jpyAccountTableData, tradingLog);
 }
 

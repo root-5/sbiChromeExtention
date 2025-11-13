@@ -45,11 +45,6 @@ class JpyAccount {
      * @returns {Array} テーブル用データの配列
      */
     static convertToTable(data) {
-        if (!data?.stocks?.length) {
-            console.warn('株式データがありません');
-            return [];
-        }
-
         // 同一銘柄をまとめる
         const mergedDataMap = new Map();
         data.stocks.forEach((stock) => {
@@ -94,7 +89,7 @@ class JpyAccount {
      * @param {Chart} chartInstance Chart.jsの既存インスタンス（更新時のみ）
      * @return {Chart} Chart.jsのインスタンス
      */
-    static drawChart(graphData, chartInstance = null) {
+    static drawCircleChart(graphData, chartInstance = null) {
         // データとラベルを準備
         const labels = graphData.map((item) => item.name);
         const data = graphData.map((item) => item.marketCap);
@@ -186,11 +181,6 @@ class JpyAccount {
      * @param {Array} tableData テーブル用データ
      */
     static drawPortfolioTable(data, tableData) {
-        if (!tableData?.length) {
-            console.warn('テーブル用データがありません');
-            return;
-        }
-
         // 合計評価額を計算
         const totalMarketCap = tableData.reduce((sum, item) => sum + item.marketCap, 0);
 
@@ -302,10 +292,10 @@ class JpyAccount {
     }
 
     /**
-     * 当日約定をテーブルの先頭に追加する関数
+     * 当日約定をテーブルの先頭に追記する関数
      * @param {Array} todayExecutions 当日約定データ
      */
-    static addTodayExecutionToTradingLogTable(todayExecutions = []) {
+    static drawTodayExecutionToTradingLogTable(todayExecutions = []) {
         if (!todayExecutions?.length) return;
 
         // 同一銘柄・同一売買・同一日付で集計し、新たな配列を作成
@@ -400,26 +390,5 @@ class JpyAccount {
 
         // テーブル行をデータバインディング
         TemplateEngine.bindTableRows('priceChangeTableRow', tableData);
-    }
-
-    /**
-     * 日付文字列をMM/DD形式に整形する関数
-     * @param {string} dateStr 変換対象の日付文字列
-     * @returns {string} MM/DD形式の日付
-     */
-    static formatDateToMMDD(dateStr) {
-        if (!dateStr) return '';
-
-        if (dateStr.includes('/')) {
-            const parts = dateStr.split('/');
-            if (parts.length === 3) return `${parts[1]}/${parts[2]}`;
-        }
-
-        if (dateStr.includes('-')) {
-            const parts = dateStr.split('-');
-            if (parts.length === 3) return `${parts[1]}/${parts[2]}`;
-        }
-
-        return dateStr;
     }
 }
