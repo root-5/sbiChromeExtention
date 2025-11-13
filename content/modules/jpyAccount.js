@@ -308,101 +308,48 @@ class JpyAccount {
     static addTodayExecutionToTradingLogTable(todayExecutions = []) {
         if (!todayExecutions?.length) return;
 
-        // 取引履歴のベースデータが未設定の場合は何もしない
-        if (!Array.isArray(JpyAccount._baseTradingLogData)) {
-            console.warn('取引履歴ベースデータが未設定のため、当日約定を追加できません');
-            return;
-        }
+        // 同一銘柄・同一売買・同一日付で集計し、新たな配列を作成
+        const aggregatedTodayExecutions = [];
+        todayExecutions.forEach((item, _) => {
+            const tradeTypeLabel = item.tradeType.includes('買') ? '買' : '売';
+            const quantity = Number(String(item.quantity).replace(/[,\s]/g, ''));
+            const price = Number(String(item.price).replace(/[^\d.-]/g, ''));
 
-        // 初回または日付が変わった場合はキャッシュをリセット
-        const firstDate = todayExecutions[0]?.date;
-        if (firstDate) {
-            if (JpyAccount._todayExecutionDate !== firstDate) {
-                JpyAccount._todayExecutionDate = firstDate;
-                JpyAccount._processedTodayExecutionKeys = new Set();
-                JpyAccount._todayExecutionCache = new Map();
-                JpyAccount._todayExecutionDisplayRows = [];
-            }
-        }
-
-        JpyAccount._processedTodayExecutionKeys = JpyAccount._processedTodayExecutionKeys || new Set();
-        JpyAccount._todayExecutionCache = JpyAccount._todayExecutionCache || new Map();
-
-        let hasNewEntry = false;
-
-        todayExecutions.forEach((item) => {
-            const rawKey = `${item.date}|${item.code}|${item.tradeType}|${item.quantity}|${item.price}|${item.fee}`;
-            if (JpyAccount._processedTodayExecutionKeys.has(rawKey)) return;
-
-            JpyAccount._processedTodayExecutionKeys.add(rawKey);
-            hasNewEntry = true;
-
-            const mapKey = `${item.date}|${item.code}`;
-            const absQuantity = Math.abs(Number(item.quantity) || 0);
-            if (!absQuantity) return;
-
-            const existing = JpyAccount._todayExecutionCache.get(mapKey) || {
-                code: item.code,
-                name: item.name,
-                date: item.date,
-                weightedPriceSum: 0,
-                totalAbsQuantity: 0,
-                netQuantity: 0,
-            };
-
-            const sign = item.tradeType.includes('買') ? 1 : -1;
-            existing.weightedPriceSum += Number(item.price) * absQuantity;
-            existing.totalAbsQuantity += absQuantity;
-            existing.netQuantity += sign * absQuantity;
-            existing.date = item.date;
-            existing.name = item.name;
-
-            JpyAccount._todayExecutionCache.set(mapKey, existing);
-
-            // キャッシュが肥大化しないように上限を設定（最古の要素を削除）
-            if (JpyAccount._todayExecutionCache.size > 100) {
-                const oldestKey = JpyAccount._todayExecutionCache.keys().next().value;
-                if (oldestKey) {
-                    JpyAccount._todayExecutionCache.delete(oldestKey);
+            // 重複チェックしつつ、重複している場合は集計
+            let isDuplicate = false;
+            aggregatedTodayExecutions.forEach((existing) => {
+                if (existing.date === item.date && existing.code === item.code && existing.tradeType === tradeTypeLabel) {
+                    const totalQuantity = existing.quantity + quantity;
+                    existing.price = ((existing.price * existing.quantity + price * quantity) / totalQuantity).toFixed(0);
+                    existing.quantity = totalQuantity;
+                    isDuplicate = true;
                 }
+            });
+
+            // 重複していなければ新規追加
+            if (!isDuplicate) {
+                aggregatedTodayExecutions.push({
+                    code: item.code,
+                    name: item.name,
+                    date: item.date,
+                    tradeType: tradeTypeLabel,
+                    quantity: quantity,
+                    price: price,
+                });
             }
         });
 
-        if (!hasNewEntry) return;
-
-        // 表示用データを生成
-        const todayExecutionRows = Array.from(JpyAccount._todayExecutionCache.values())
-            .map((entry) => {
-                const avgPrice = entry.totalAbsQuantity ? entry.weightedPriceSum / entry.totalAbsQuantity : 0;
-                const tradeTypeLabel = entry.netQuantity > 0 ? '買' : entry.netQuantity < 0 ? '売' : '売買';
-                const quantityText = Math.abs(entry.netQuantity).toLocaleString();
-                const priceText = `¥${avgPrice.toLocaleString('ja-JP', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
-
-                return {
-                    date: entry.date,
-                    code: entry.code,
-                    name: entry.name,
-                    tradeType: tradeTypeLabel,
-                    quantity: quantityText,
-                    price: priceText,
-                };
-            })
-            .sort((a, b) => {
-                if (a.date !== b.date) return b.date.localeCompare(a.date);
-                return a.code.localeCompare(b.code);
-            });
-
-        JpyAccount._todayExecutionDisplayRows = todayExecutionRows;
-
-        // 表示用データを結合（当日約定 + 取引履歴）
-        const tableTextData = [...todayExecutionRows, ...JpyAccount._baseTradingLogData];
+        // コード順ソート
+        aggregatedTodayExecutions.sort((a, b) => {
+            return a.code.localeCompare(b.code);
+        });
 
         // テーブル行をデータバインディング
-        TemplateEngine.bindTableRows('jpyAccountTradingLogRow', tableTextData);
+        TemplateEngine.bindTableRows('jpyAccountTradingLogRow', [...aggregatedTodayExecutions, ...JpyAccount._tradingLogCache]);
     }
 
     /**
-     * 過去10日間の株価変化率と売買数の変化をまとめたテーブルを作成する関数
+     * 過去10日間の株価変化率と増減株数の変化をまとめたテーブルを作成する関数
      * @param {Object} closePriceData 終値データ（ExternalResource.fetchClosePriceDataで取得したデータ）
      * @param {Array<Object>} jpyAccountTableData 現在の保有銘柄のテーブルデータ
      * @param {Array<Object>} tradingLog 取引履歴データ
@@ -410,43 +357,30 @@ class JpyAccount {
     static drawPriceChangeTable(closePriceData, jpyAccountTableData, tradingLog) {
         if (!closePriceData || !Array.isArray(closePriceData) || closePriceData.length < 2) {
             console.warn('終値データが不足しています');
-            return;
         }
-
-        // 見出し行に表示する日付ラベルをバインド
-        const headerBaseLabels = ['前日', '2日前', '3日前', '4日前', '5日前', '6日前', '7日前', '8日前', '9日前', '10日前'];
-        const headerBinding = {};
-        headerBaseLabels.forEach((label, index) => {
-            const dataIndex = index + 1; // 最新データを除いた過去データ
-            const entry = closePriceData[dataIndex];
-            if (entry?.date) {
-                const formattedDate = JpyAccount.formatDateToMMDD(entry.date);
-                headerBinding[`priceChangeDayLabel${dataIndex}`] = `${label} (${formattedDate})`;
-            } else {
-                headerBinding[`priceChangeDayLabel${dataIndex}`] = label;
-            }
-        });
-        TemplateEngine.bindData(headerBinding);
+        const MAX_DAYS = 10;
 
         // 銘柄ごとのデータを計算、調整後現金は削除
         const tableData = jpyAccountTableData
-            .map((stock) => {
-                // 各日の変化率と売買数を計算
-                const dailyData = [];
-                for (let i = 0; i < Math.min(closePriceData.length, 11); i++) {
-                    const key = stock.code + '0'; // 東証API側の仕様で末尾に0を付与
+            .filter((item) => item.name !== '調整後現金') // 調整後現金を除外
+            .map((data) => {
+                const newTableRowData = {};
+                newTableRowData.code = data.code;
+                newTableRowData.name = data.name;
+
+                // 株価変化率と増減株数の変化をまとめた配列を作成
+                for (let i = 0; i < MAX_DAYS; i++) {
+                    const key = data.code + '0'; // 東証API側の仕様で末尾に0を付与
                     const pastPrice = closePriceData[i].closePrice[key];
                     const pastDate = closePriceData[i].date;
 
                     // 株価変化率を計算
-                    let changeRate = ((stock.currentPrice - pastPrice) / pastPrice) * 100;
+                    let changeRate = ((data.currentPrice - pastPrice) / pastPrice) * 100;
 
-                    // その日の取引を抽出
+                    // 当該日の取引を抽出、増減株数を集計（買いはプラス、売りはマイナス）
                     const trades = tradingLog.filter((trade) => {
-                        return trade.code === stock.code && trade.date.includes(pastDate);
+                        return trade.code === data.code && trade.date.includes(pastDate);
                     });
-
-                    // 売買数を集計（買いはプラス、売りはマイナス）
                     let totalQuantity = 0;
                     trades.forEach((trade) => {
                         const quantity = parseInt(trade.quantity, 10) || 0;
@@ -457,40 +391,15 @@ class JpyAccount {
                         }
                     });
 
-                    dailyData.push({
-                        daysAgo: i,
-                        changeRate: changeRate,
-                        tradeQuantity: totalQuantity,
-                    });
+                    newTableRowData[`changeRate${i + 1}`] = `${changeRate >= 0 ? '+' : ''}${changeRate.toFixed(2)}%`;
+                    newTableRowData[`tradeQuantity${i + 1}`] = totalQuantity.toLocaleString();
                 }
 
-                return {
-                    code: stock.code,
-                    name: stock.name,
-                    dailyData: dailyData,
-                };
-            })
-            .filter((item) => item.name !== '調整後現金'); // 調整後現金を除外
-
-        // テーブル行データを生成
-        const tableTextData = tableData.map((item) => {
-            const rowData = {
-                code: item.code,
-                name: item.name,
-            };
-
-            // 前日〜10日前のデータを追加
-            for (let i = 0; i < 10; i++) {
-                const data = item.dailyData[i] || { changeRate: 0, tradeQuantity: 0 };
-                rowData[`changeRate${i + 1}`] = `${data.changeRate >= 0 ? '+' : ''}${data.changeRate.toFixed(2)}%`;
-                rowData[`tradeQuantity${i + 1}`] = data.tradeQuantity.toLocaleString();
-            }
-
-            return rowData;
-        });
+                return newTableRowData;
+            });
 
         // テーブル行をデータバインディング
-        TemplateEngine.bindTableRows('priceChangeTableRow', tableTextData);
+        TemplateEngine.bindTableRows('priceChangeTableRow', tableData);
     }
 
     /**
