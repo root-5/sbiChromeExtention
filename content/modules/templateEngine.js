@@ -131,14 +131,9 @@ class TemplateEngine {
 
     /**
      * ピボットテーブル（横軸: 日付、縦軸: 銘柄）を描画する関数
-     * @param {string} tableId テーブル要素のID
      * @param {Array<{date: string, ratioAndQuantity: Array}>} pivotData 日付ごとの銘柄データ
      */
-    static bindPivotTable(tableId, pivotData) {
-        const table = document.getElementById(tableId);
-        const thead = table.querySelector('thead');
-        const tbody = table.querySelector('tbody');
-
+    static bindPivotTable(pivotData) {
         // 日付リストを取得（データの順序を維持）
         const dates = pivotData.map((d) => d.date);
 
@@ -163,34 +158,50 @@ class TemplateEngine {
             });
         });
 
-        // ヘッダー行を生成（2行構成: 日付行 + 変化率/売買数行）
-        thead.innerHTML = '';
-        const headerRow1 = document.createElement('tr');
-        const headerRow2 = document.createElement('tr');
+        // ヘッダー行に日付列を追加
+        const headerRow = document.querySelector('[data-bind="priceChangeHeaderRow"]');
+        const subHeaderRow = document.querySelector('[data-bind="priceChangeSubHeaderRow"]');
 
-        // 固定列ヘッダー（コード、銘柄名）
-        headerRow1.innerHTML = '<th rowspan="2" class="code-header">コード</th><th rowspan="2" class="name-header">銘柄名</th>';
+        // 既存の動的列をクリア（固定列のみ残す）
+        headerRow.querySelectorAll('.date-header').forEach((el) => el.remove());
+        subHeaderRow.innerHTML = '';
 
         // 日付列ヘッダーを追加
         dates.forEach((date) => {
             const th = document.createElement('th');
             th.setAttribute('colspan', '2');
+            th.className = 'date-header';
             th.textContent = date.slice(5); // MM/DD形式で表示
-            headerRow1.appendChild(th);
+            headerRow.appendChild(th);
 
-            headerRow2.innerHTML += '<th>変化率</th><th>売買数</th>';
+            const thRatio = document.createElement('th');
+            thRatio.textContent = '変化率';
+            subHeaderRow.appendChild(thRatio);
+
+            const thQuantity = document.createElement('th');
+            thQuantity.textContent = '売買数';
+            subHeaderRow.appendChild(thQuantity);
         });
 
-        thead.appendChild(headerRow1);
-        thead.appendChild(headerRow2);
+        // ボディ行をテンプレートから複製してデータをバインド
+        const templateRow = document.querySelector('[data-bind="priceChangeTableRow"]');
+        const tbody = templateRow.parentElement;
 
-        // ボディ行を生成
-        tbody.innerHTML = '';
-        stocks.forEach((stock) => {
-            const row = document.createElement('tr');
+        // 既存の行をクリア（テンプレート行のみ残す）
+        tbody.querySelectorAll('[data-bind="priceChangeTableRow"]').forEach((row, i) => {
+            if (i > 0) row.remove();
+        });
 
-            // 固定列（コード、銘柄名）
-            row.innerHTML = `<td class="code">${stock.code}</td><td class="name">${stock.name}</td>`;
+        // 銘柄数分の行を生成
+        stocks.forEach((stock, stockIndex) => {
+            const row = stockIndex === 0 ? templateRow : templateRow.cloneNode(true);
+
+            // 固定列（コード、銘柄名）をバインド
+            row.querySelector('[data-bind="code"]').textContent = stock.code;
+            row.querySelector('[data-bind="name"]').textContent = stock.name;
+
+            // 既存の動的セルをクリア
+            row.querySelectorAll('.dynamic-cell').forEach((el) => el.remove());
 
             // 各日付のデータセルを追加
             dates.forEach((date) => {
@@ -198,8 +209,8 @@ class TemplateEngine {
 
                 // 変化率セル
                 const ratioCell = document.createElement('td');
-                ratioCell.className = 'changeRate';
-                if (item && item.ratio != null) {
+                ratioCell.className = 'changeRate dynamic-cell';
+                if (item && item.ratio != null && item.ratio !== 0) {
                     const ratioText = `${item.ratio >= 0 ? '+' : ''}${item.ratio.toFixed(2)}%`;
                     ratioCell.textContent = ratioText;
                     ratioCell.classList.add(item.ratio >= 0 ? 'positive' : 'negative');
@@ -208,8 +219,8 @@ class TemplateEngine {
 
                 // 売買数セル
                 const quantityCell = document.createElement('td');
-                quantityCell.className = 'tradeQuantity';
-                if (item && item.quantity != null) {
+                quantityCell.className = 'tradeQuantity dynamic-cell';
+                if (item && item.quantity != null && item.quantity !== 0) {
                     const quantityText = `${item.quantity >= 0 ? '+' : ''}${item.quantity.toLocaleString()}`;
                     quantityCell.textContent = quantityText;
                     quantityCell.classList.add(item.quantity >= 0 ? 'positive' : 'negative');
@@ -217,7 +228,10 @@ class TemplateEngine {
                 row.appendChild(quantityCell);
             });
 
-            tbody.appendChild(row);
+            // テンプレート行以外は新規追加
+            if (stockIndex > 0) {
+                tbody.appendChild(row);
+            }
         });
     }
 }

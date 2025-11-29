@@ -117,13 +117,30 @@
                 </table>
             </div>
         </div>
-        <!-- 株価変化率と売買数テーブルコンテナ（動的生成） -->
+        <!-- 株価変化率と売買数テーブルコンテナ -->
         <div id="priceChangeTableContainer">
             <h2>株価変化率と売買数</h2>
             <div class="table-wrapper">
                 <table id="priceChangeTable">
-                    <thead></thead>
-                    <tbody></tbody>
+                    <!-- テーブルヘッダー（動的に日付列が追加される） -->
+                    <thead>
+                        <tr data-bind="priceChangeHeaderRow">
+                            <th rowspan="2" class="code-header">コード</th>
+                            <th rowspan="2" class="name-header">銘柄名</th>
+                            <!-- 日付列ヘッダーがここに追加される -->
+                        </tr>
+                        <tr data-bind="priceChangeSubHeaderRow">
+                            <!-- 変化率/売買数ヘッダーがここに追加される -->
+                        </tr>
+                    </thead>
+                    <!-- テーブルボディ（テンプレート行） -->
+                    <tbody>
+                        <tr data-bind="priceChangeTableRow">
+                            <td data-bind="code" class="code"></td>
+                            <td data-bind="name" class="name"></td>
+                            <!-- 日付ごとの変化率/売買数セルがここに追加される -->
+                        </tr>
+                    </tbody>
                 </table>
             </div>
         </div>

@@ -422,9 +422,6 @@ class JpyAccount {
             };
         });
 
-        console.log(ratioAndQuantity);
-
-        // ピボットテーブルを描画
-        TemplateEngine.bindPivotTable('priceChangeTable', ratioAndQuantity);
+        TemplateEngine.bindPivotTable(ratioAndQuantity);
     }
 }
