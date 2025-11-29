@@ -340,12 +340,12 @@ class JpyAccount {
 
     /**
      * 過去10日間の株価変化率と増減株数の変化をまとめたテーブルを作成する関数
-     * @param {Object} closePriceData 終値データ（ExternalResource.fetchClosePriceDataで取得したデータ）
+     * @param {Object} currentPrices 現在価格データ（ExternalResource.fetchCurrentPriceDataで取得したデータ）
      * @param {Array<Object>} jpyAccountTableData 現在の保有銘柄のテーブルデータ
      * @param {Array<Object>} tradingLog 取引履歴データ
      */
-    static drawPriceChangeTable(closePriceData, jpyAccountTableData, tradingLog) {
-        if (!closePriceData || !Array.isArray(closePriceData) || closePriceData.length < 2) {
+    static drawPriceChangeTable(currentPrices, jpyAccountTableData, tradingLog) {
+        if (!currentPrices || !Array.isArray(currentPrices) || currentPrices.length < 2) {
             console.warn('終値データが不足しています');
         }
         const MAX_DAYS = 10;
@@ -361,8 +361,8 @@ class JpyAccount {
                 // 株価変化率と増減株数の変化をまとめた配列を作成
                 for (let i = 0; i < MAX_DAYS; i++) {
                     const key = data.code + '0'; // 東証API側の仕様で末尾に0を付与
-                    const pastPrice = closePriceData[i].closePrice[key];
-                    const pastDate = closePriceData[i].date;
+                    const pastPrice = currentPrices[i].closePrice[key];
+                    const pastDate = currentPrices[i].date;
 
                     // 株価変化率を計算
                     let changeRate = ((data.currentPrice - pastPrice) / pastPrice) * 100;

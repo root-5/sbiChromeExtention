@@ -41,14 +41,13 @@ async function updateJpyAccount(tradingLog = []) {
     // データ取得
     const { buyingPower, cashBalance, stocks, todayExecution } = await JpyAccount.extractAccountDataPerMinute();
     const jpyAccountTableData = JpyAccount.convertToTable({ cashBalance, stocks });
-    const numberOfDays = 20;
-    const { closePriceData } = await ExternalResource.fetchClosePriceData(stocks, numberOfDays);
+    const currentPrices = await ExternalResource.fetchCurrentPrice(stocks);
 
     // UI更新（チャートはグローバル変数で保持）
     jpyAccountChart = JpyAccount.drawCircleChart(jpyAccountTableData, jpyAccountChart);
     JpyAccount.drawPortfolioTable({ buyingPower, cashBalance, stocks }, jpyAccountTableData);
     JpyAccount.drawTodayExecutionToTradingLogTable(todayExecution);
-    JpyAccount.drawPriceChangeTable(closePriceData, jpyAccountTableData, tradingLog);
+    JpyAccount.drawPriceChangeTable(currentPrices, jpyAccountTableData, tradingLog);
 }
 
 /**

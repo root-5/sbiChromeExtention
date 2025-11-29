@@ -29,4 +29,27 @@ class ExternalResource {
             throw error;
         }
     }
+
+    /**
+     * 銘柄の配列から現在価格を取得する関数
+     * @param {Array<Object>} stocks 銘柄の配列
+     * @returns {Array<Object>} - 現在価格の配列（ディレイ有）
+     */
+    static async fetchCurrentPrice(stocks) {
+        const codes = [...new Set(stocks.map((stock) => stock.code))];
+        try {
+            // バックグラウンド側で終値データを取得
+            const response = await chrome.runtime.sendMessage({
+                type: 'FETCH_CURRENT_PRICE_DATA',
+                params: {
+                    codes: codes,
+                },
+            });
+            if (!response.success) throw new Error(response.error);
+            return response.data;
+        } catch (error) {
+            console.error('現在価格の取得に失敗しました:', error);
+            throw error;
+        }
+    }
 }
