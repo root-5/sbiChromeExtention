@@ -11,28 +11,16 @@ class TemplateEngine {
      * @param {string} templatePath テンプレートファイルのパス
      */
     static async setTemplate(targetElementID, templatePath) {
-        try {
-            // テンプレートファイルをフェッチ
-            const url = chrome.runtime.getURL(templatePath);
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`テンプレート読み込みエラー: ${response.status}`);
-            }
-            const templateHTML = await response.text();
+        const url = chrome.runtime.getURL(templatePath);
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`テンプレート読み込みエラー: ${response.status}`);
+        const templateHTML = await response.text();
 
-            // 指定された親要素の後ろにテンプレートを挿入
-            const parentElement = document.getElementById(targetElementID);
-            if (!parentElement) {
-                console.error(`親要素が見つかりません: ${targetElementID}`);
-                return;
-            }
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = templateHTML;
-            parentElement.insertAdjacentElement('afterend', tempDiv);
-        } catch (error) {
-            console.error('テンプレート読み込み失敗:', error);
-            throw error;
-        }
+        const parentElement = document.getElementById(targetElementID);
+        if (!parentElement) throw new Error(`親要素が見つかりません: ${targetElementID}`);
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = templateHTML;
+        parentElement.insertAdjacentElement('afterend', tempDiv);
     }
 
     /**
@@ -40,10 +28,9 @@ class TemplateEngine {
      * @param {Object} data バインドするデータオブジェクト（例：{ bindTarget: textContent }）
      */
     static bindData(data) {
-        Object.keys(data).forEach((key) => {
-            const elements = document.querySelectorAll(`[data-bind="${key}"]`);
-            elements.forEach((element) => {
-                element.textContent = data[key];
+        Object.entries(data).forEach(([key, value]) => {
+            document.querySelectorAll(`[data-bind="${key}"]`).forEach((element) => {
+                element.textContent = value;
             });
         });
     }
@@ -53,10 +40,9 @@ class TemplateEngine {
      * @param {Object} data バインドするデータオブジェクト(例：{ bindTarget: className }）
      */
     static bindClass(data) {
-        Object.keys(data).forEach((key) => {
-            const elements = document.querySelectorAll(`[data-bind="${key}"]`);
-            elements.forEach((element) => {
-                element.className = data[key];
+        Object.entries(data).forEach(([key, value]) => {
+            document.querySelectorAll(`[data-bind="${key}"]`).forEach((element) => {
+                element.className = value;
             });
         });
     }
@@ -81,15 +67,12 @@ class TemplateEngine {
         const rowElements = document.querySelectorAll(`[data-bind="${targetTableRowName}"]`);
         const parentElement = rowElements[0].parentElement;
 
-        // データ数に応じて各テーブルに行を削除・追加
+        // データ数に応じて行を削除・追加
         if (rowElements.length > tableTextData.length) {
-            for (let i = tableTextData.length; i < rowElements.length; i++) {
-                rowElements[i].remove();
-            }
+            for (let i = tableTextData.length; i < rowElements.length; i++) rowElements[i].remove();
         } else if (rowElements.length < tableTextData.length) {
-            const templateRow = rowElements[0];
             for (let i = rowElements.length; i < tableTextData.length; i++) {
-                parentElement.appendChild(templateRow.cloneNode(true));
+                parentElement.appendChild(rowElements[0].cloneNode(true));
             }
         }
 
@@ -99,30 +82,27 @@ class TemplateEngine {
             const targetRow = updatedRowElements[i];
             const boundKeys = new Set(Object.keys(rowData));
 
-            Object.keys(rowData).forEach((key) => {
+            // 各キーの値をバインド
+            Object.entries(rowData).forEach(([key, value]) => {
                 const cell = targetRow.querySelector(`[data-bind="${key}"]`);
                 if (!cell) return;
-                cell.textContent = rowData[key] ?? '';
+
+                cell.textContent = value ?? '';
                 cell.classList.remove('positive', 'negative');
 
                 // "+"や"-"のクラスを設定（CSSの色分け用）
-                const textValue = String(rowData[key]);
-                if (textValue.startsWith('+') || textValue.startsWith('買')) {
-                    cell.classList.add('positive');
-                } else if (textValue.startsWith('-') || textValue.startsWith('売')) {
-                    cell.classList.add('negative');
-                }
+                const text = String(value);
+                if (text.startsWith('+') || text.startsWith('買')) cell.classList.add('positive');
+                else if (text.startsWith('-') || text.startsWith('売')) cell.classList.add('negative');
             });
 
             // 今回バインドされなかった要素は既存値をクリア
             targetRow.querySelectorAll('[data-bind]').forEach((element) => {
                 const bindKey = element.getAttribute('data-bind');
-                if (bindKey === targetTableRowName) return;
-                if (boundKeys.has(bindKey)) return;
+                if (bindKey === targetTableRowName || boundKeys.has(bindKey)) return;
 
-                // 子要素にさらに data-bind がある場合は親要素をクリアしない
+                // 子要素に data-bind がある場合はクリアしない
                 if (element.querySelector('[data-bind]')) return;
-
                 element.textContent = '';
                 element.classList.remove('positive', 'negative');
             });
@@ -134,16 +114,13 @@ class TemplateEngine {
      * @param {Array<{date: string, ratioAndQuantity: Array}>} pivotData 日付ごとの銘柄データ
      */
     static bindPivotTable(pivotData) {
-        // 日付リストを取得（データの順序を維持）
         const dates = pivotData.map((d) => d.date);
 
         // 全銘柄をユニークに抽出（code順でソート）
         const stockMap = new Map();
-        pivotData.forEach((dayData) => {
-            dayData.ratioAndQuantity.forEach((item) => {
-                if (!stockMap.has(item.code)) {
-                    stockMap.set(item.code, item.name);
-                }
+        pivotData.forEach((day) => {
+            day.ratioAndQuantity.forEach((item) => {
+                if (!stockMap.has(item.code)) stockMap.set(item.code, item.name);
             });
         });
         const stocks = Array.from(stockMap.entries())
@@ -152,45 +129,55 @@ class TemplateEngine {
 
         // 日付×銘柄のデータをマップ化（高速参照用）
         const dataMap = new Map();
-        pivotData.forEach((dayData) => {
-            dayData.ratioAndQuantity.forEach((item) => {
-                dataMap.set(`${dayData.date}_${item.code}`, item);
+        pivotData.forEach((day) => {
+            day.ratioAndQuantity.forEach((item) => {
+                dataMap.set(`${day.date}_${item.code}`, item);
             });
         });
 
-        // ヘッダー行に日付列を追加
+        /**
+         * 指定セレクタの要素を最初の1つ（テンプレート）だけ残して削除するヘルパー関数
+         * @param {Element} parent 親要素
+         * @param {string} selector CSSセレクタ
+         */
+        const clearDynamicElements = (parent, selector) => {
+            const elements = parent.querySelectorAll(selector);
+            for (let i = elements.length - 1; i > 0; i--) {
+                elements[i].remove();
+            }
+        };
+
+        // ヘッダー行のテンプレート要素を取得
         const headerRow = document.querySelector('[data-bind="priceChangeHeaderRow"]');
         const subHeaderRow = document.querySelector('[data-bind="priceChangeSubHeaderRow"]');
+        const dateHeaderTemplate = headerRow.querySelector('[data-bind="dateHeader"]');
+        const ratioHeaderTemplate = subHeaderRow.querySelector('[data-bind="ratioHeader"]');
+        const quantityHeaderTemplate = subHeaderRow.querySelector('[data-bind="quantityHeader"]');
 
-        // 既存の動的列をクリア（固定列のみ残す）
-        headerRow.querySelectorAll('.date-header').forEach((el) => el.remove());
-        subHeaderRow.innerHTML = '';
+        // 既存の動的列をクリア
+        clearDynamicElements(headerRow, '[data-bind="dateHeader"]');
+        clearDynamicElements(subHeaderRow, '[data-bind="ratioHeader"]');
+        clearDynamicElements(subHeaderRow, '[data-bind="quantityHeader"]');
 
-        // 日付列ヘッダーを追加
-        dates.forEach((date) => {
-            const th = document.createElement('th');
-            th.setAttribute('colspan', '2');
-            th.className = 'date-header';
-            th.textContent = date.slice(5); // MM/DD形式で表示
-            headerRow.appendChild(th);
-
-            const thRatio = document.createElement('th');
-            thRatio.textContent = '変化率';
-            subHeaderRow.appendChild(thRatio);
-
-            const thQuantity = document.createElement('th');
-            thQuantity.textContent = '売買数';
-            subHeaderRow.appendChild(thQuantity);
+        // 日付数分のヘッダーを複製・バインド
+        dates.forEach((date, i) => {
+            const dateHeader = i === 0 ? dateHeaderTemplate : dateHeaderTemplate.cloneNode(true);
+            dateHeader.textContent = date.slice(5); // MM/DD形式
+            if (i > 0) headerRow.appendChild(dateHeader);
+            const ratioHeader = i === 0 ? ratioHeaderTemplate : ratioHeaderTemplate.cloneNode(true);
+            if (i > 0) subHeaderRow.appendChild(ratioHeader);
+            const quantityHeader = i === 0 ? quantityHeaderTemplate : quantityHeaderTemplate.cloneNode(true);
+            if (i > 0) subHeaderRow.appendChild(quantityHeader);
         });
 
-        // ボディ行をテンプレートから複製してデータをバインド
+        // ボディ行のテンプレート要素を取得
         const templateRow = document.querySelector('[data-bind="priceChangeTableRow"]');
         const tbody = templateRow.parentElement;
+        const ratioCellTemplate = templateRow.querySelector('[data-bind="ratio"]');
+        const quantityCellTemplate = templateRow.querySelector('[data-bind="quantity"]');
 
-        // 既存の行をクリア（テンプレート行のみ残す）
-        tbody.querySelectorAll('[data-bind="priceChangeTableRow"]').forEach((row, i) => {
-            if (i > 0) row.remove();
-        });
+        // 既存の行をクリア
+        clearDynamicElements(tbody, '[data-bind="priceChangeTableRow"]');
 
         // 銘柄数分の行を生成
         stocks.forEach((stock, stockIndex) => {
@@ -201,31 +188,33 @@ class TemplateEngine {
             row.querySelector('[data-bind="name"]').textContent = stock.name;
 
             // 既存の動的セルをクリア
-            row.querySelectorAll('.dynamic-cell').forEach((el) => el.remove());
+            clearDynamicElements(row, '[data-bind="ratio"]');
+            clearDynamicElements(row, '[data-bind="quantity"]');
 
-            // 各日付のデータセルを追加
-            dates.forEach((date) => {
+            // 各日付のデータセルを複製・バインド
+            dates.forEach((date, dateIndex) => {
                 const item = dataMap.get(`${date}_${stock.code}`);
 
                 // 変化率セル
-                const ratioCell = document.createElement('td');
-                ratioCell.className = 'changeRate dynamic-cell';
+                const ratioCell = dateIndex === 0 ? ratioCellTemplate : ratioCellTemplate.cloneNode(true);
+                ratioCell.textContent = '-';
+                ratioCell.classList.remove('positive', 'negative');
                 if (item && item.ratio != null && item.ratio !== 0) {
                     const ratioText = `${item.ratio >= 0 ? '+' : ''}${item.ratio.toFixed(2)}%`;
                     ratioCell.textContent = ratioText;
                     ratioCell.classList.add(item.ratio >= 0 ? 'positive' : 'negative');
                 }
-                row.appendChild(ratioCell);
+                if (dateIndex > 0) row.appendChild(ratioCell);
 
                 // 売買数セル
-                const quantityCell = document.createElement('td');
-                quantityCell.className = 'tradeQuantity dynamic-cell';
+                const quantityCell = dateIndex === 0 ? quantityCellTemplate : quantityCellTemplate.cloneNode(true);
+                quantityCell.textContent = '-';
+                quantityCell.classList.remove('positive', 'negative');
                 if (item && item.quantity != null && item.quantity !== 0) {
                     const quantityText = `${item.quantity >= 0 ? '+' : ''}${item.quantity.toLocaleString()}`;
                     quantityCell.textContent = quantityText;
-                    quantityCell.classList.add(item.quantity >= 0 ? 'positive' : 'negative');
                 }
-                row.appendChild(quantityCell);
+                if (dateIndex > 0) row.appendChild(quantityCell);
             });
 
             // テンプレート行以外は新規追加

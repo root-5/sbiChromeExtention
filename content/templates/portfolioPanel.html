@@ -122,23 +122,28 @@
             <h2>株価変化率と売買数</h2>
             <div class="table-wrapper">
                 <table id="priceChangeTable">
-                    <!-- テーブルヘッダー（動的に日付列が追加される） -->
+                    <!-- テーブルヘッダー -->
                     <thead>
                         <tr data-bind="priceChangeHeaderRow">
                             <th rowspan="2" class="code-header">コード</th>
                             <th rowspan="2" class="name-header">銘柄名</th>
-                            <!-- 日付列ヘッダーがここに追加される -->
+                            <!-- 日付列ヘッダーのテンプレート（複製される） -->
+                            <th colspan="2" data-bind="dateHeader" class="date-header"></th>
                         </tr>
                         <tr data-bind="priceChangeSubHeaderRow">
-                            <!-- 変化率/売買数ヘッダーがここに追加される -->
+                            <!-- 変化率/売買数ヘッダーのテンプレート（複製される） -->
+                            <th data-bind="ratioHeader">変化率</th>
+                            <th data-bind="quantityHeader">売買数</th>
                         </tr>
                     </thead>
-                    <!-- テーブルボディ（テンプレート行） -->
+                    <!-- テーブルボディ -->
                     <tbody>
                         <tr data-bind="priceChangeTableRow">
                             <td data-bind="code" class="code"></td>
                             <td data-bind="name" class="name"></td>
-                            <!-- 日付ごとの変化率/売買数セルがここに追加される -->
+                            <!-- データセルのテンプレート（複製される） -->
+                            <td data-bind="ratio" class="changeRate"></td>
+                            <td data-bind="quantity" class="quantity"></td>
                         </tr>
                     </tbody>
                 </table>
