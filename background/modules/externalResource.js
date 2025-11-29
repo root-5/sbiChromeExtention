@@ -82,18 +82,18 @@ export async function fetchClosePriceData(codes, daysAgo = 15) {
  * @returns {Array<Object>} - 現在価格の配列（ディレイ有）
  */
 export async function fetchCurrentPriceData(codes) {
-    const currentPrices = [];
-    for (const code of codes) {
+    // 各銘柄コードに対して非同期処理のPromiseを作成し、並行実行する
+    const promises = codes.map(async (code) => {
         // GoogleFinance からHTMLを取得
         const googleFinanceUrl = 'https://www.google.com/finance/quote/' + code + ':TYO?hl=jp&gl=jp';
         const html = await fetch(googleFinanceUrl).then((response) => response.text());
-        let price = html.match(/data-last-price="([\s\S]*?)"/);
-        price[1] = price[1].replace(',', ''); // カンマの除去
-        price[1] = Number(price[1]); // 文字列を数列に
-        currentPrices.push({
+        const match = html.match(/data-last-price="([\s\S]*?)"/);
+        let priceStr = match[1].replace(',', ''); // カンマの除去
+        const price = Number(priceStr); // 文字列を数値に変換
+        return {
             code: code,
-            price: price[1],
-        });
-    }
-    return currentPrices;
+            price: price,
+        };
+    });
+    return await Promise.all(promises);
 }
