@@ -1,5 +1,5 @@
 /**
- * 指定された銘柄コードの終値データを取得する関数
+ * 指定された銘柄コードの終値データを独自 API から取得する関数
  * @param {Array<string>} codes 銘柄コードの配列（例: ["7203", "6758", "9984"]）
  * @param {number} daysAgo 何日前からのデータを取得するか（デフォルト: 15日前）
  * @returns {Promise<Object>} 終値データ
@@ -74,4 +74,26 @@ export async function fetchClosePriceData(codes, daysAgo = 15) {
         console.error('終値データの取得に失敗しました:', error);
         return { success: false, error: error.message };
     }
+}
+
+/**
+ * 指定された銘柄コードの現在価格データを GoogleFinance から取得する関数
+ * @param {Array<string>} codes 銘柄コードの配列（例: ["7203", "6758", "9984"]）
+ * @returns {Array<Object>} - 現在価格の配列（ディレイ有）
+ */
+export async function fetchCurrentPriceData(codes) {
+    // 各銘柄コードに対して非同期処理のPromiseを作成し、並行実行する
+    const promises = codes.map(async (code) => {
+        // GoogleFinance からHTMLを取得
+        const googleFinanceUrl = 'https://www.google.com/finance/quote/' + code + ':TYO?hl=jp&gl=jp';
+        const html = await fetch(googleFinanceUrl).then((response) => response.text());
+        const match = html.match(/data-last-price="([\s\S]*?)"/);
+        let priceStr = match[1].replace(',', ''); // カンマの除去
+        const price = Number(priceStr); // 文字列を数値に変換
+        return {
+            code: code,
+            price: price,
+        };
+    });
+    return await Promise.all(promises);
 }

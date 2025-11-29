@@ -321,10 +321,16 @@ body > div:nth-child(1) {
         background: #0066cc;
       }
 
+      .date-header {
+        font-size: 0.85em;
+        padding-top: 0.9em;
+        padding-bottom: 0.6em;
+      }
+
       tr:nth-child(2) th {
         font-size: 0.85em;
-        padding-top: 0.65em;
-        padding-bottom: 0.65em;
+        padding-top: 0.5em;
+        padding-bottom: 0.5em;
       }
     }
 
@@ -348,10 +354,15 @@ body > div:nth-child(1) {
         }
 
         &.changeRate {
-          font-weight: 600;
           text-align: right;
+
+          &.positive,
+          &.negative {
+            font-weight: 600;
+            color: #28a745;
+          }
         }
-        &.tradeQuantity {
+        &.quantity {
           text-align: right;
         }
       }

@@ -4,7 +4,7 @@
  */
 
 import { parseJpyAccountHTML, parseJpyPortfolioCSV, parseJpyTradingLogCsv, parseJpyTodayExecution } from './modules/jpyAccount.js';
-import { fetchClosePriceData } from './modules/externalResource.js';
+import { fetchClosePriceData, fetchCurrentPriceData } from './modules/externalResource.js';
 
 // インストール時の初期化処理
 chrome.runtime.onInstalled.addListener((details) => {
@@ -18,6 +18,7 @@ const MESSAGE_HANDLERS = {
     PARSE_JPY_TRADING_LOG_CSV: parseJpyTradingLogCsv,
     PARSE_JPY_TODAY_EXECUTION: parseJpyTodayExecution,
     FETCH_CLOSE_PRICE_DATA: ({ codes, daysAgo }) => fetchClosePriceData(codes, daysAgo),
+    FETCH_CURRENT_PRICE_DATA: ({ codes }) => fetchCurrentPriceData(codes),
 };
 
 // コンテンツスクリプトからのメッセージを受信、対応表に基づいて処理を実行

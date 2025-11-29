@@ -243,12 +243,13 @@ class JpyAccount {
     }
 
     /**
-     * 取引履歴テーブルを作成する関数
+     * 取引履歴データから同一日の同一銘柄・同一売買で集計した整形後の配列を返す関数
      * @param {Array} tradingLog 取引履歴データ
+     * @returns {Array} 集計後の取引履歴データ配列
      */
-    static drawTradingLogTable(tradingLog) {
+    static totalTradingLog(tradingLog) {
         // 同一銘柄・同一売買・同一日付で集計し、新たな配列を作成
-        const aggregatedTradingLog = [];
+        const totaledTradingLog = [];
         tradingLog.forEach((item, _) => {
             const tradeTypeLabel = item.tradeType.includes('買') ? '買' : '売';
             const quantity = Number(String(item.quantity).replace(/[,\s]/g, ''));
@@ -256,10 +257,10 @@ class JpyAccount {
 
             // 重複チェックしつつ、重複している場合は集計
             let isDuplicate = false;
-            aggregatedTradingLog.forEach((existing) => {
+            totaledTradingLog.forEach((existing) => {
                 if (existing.date === item.date && existing.code === item.code && existing.tradeType === tradeTypeLabel) {
                     const totalQuantity = existing.quantity + quantity;
-                    existing.price = ((existing.price * existing.quantity + price * quantity) / totalQuantity).toFixed(0);
+                    existing.price = (existing.price * existing.quantity + price * quantity) / totalQuantity;
                     existing.quantity = totalQuantity;
                     isDuplicate = true;
                 }
@@ -267,7 +268,7 @@ class JpyAccount {
 
             // 重複していなければ新規追加
             if (!isDuplicate) {
-                aggregatedTradingLog.push({
+                totaledTradingLog.push({
                     code: item.code,
                     name: item.name,
                     date: item.date,
@@ -279,16 +280,30 @@ class JpyAccount {
         });
 
         // コード順、日付順でソート（優先は日付）
-        aggregatedTradingLog.sort((a, b) => {
+        totaledTradingLog.sort((a, b) => {
             if (a.date !== b.date) return b.date.localeCompare(a.date);
             return a.code.localeCompare(b.code);
         });
+        return totaledTradingLog;
+    }
+
+    /**
+     * 取引履歴テーブルを作成する関数
+     * @param {Array} totaledTradingLog 取引履歴データ
+     */
+    static drawTradingLogTable(totaledTradingLog = []) {
+        // 取引履歴データの quantity と price をカンマ区切りの文字列に変換
+        const formattedTradingLog = totaledTradingLog.map((item) => ({
+            ...item,
+            quantity: item.quantity.toLocaleString(),
+            price: Math.floor(item.price).toLocaleString(),
+        }));
 
         // 取引履歴のベースデータをキャッシュ
-        JpyAccount._tradingLogCache = aggregatedTradingLog;
+        JpyAccount._tradingLogCache = formattedTradingLog;
 
         // テーブル行をデータバインディング
-        TemplateEngine.bindTableRows('jpyAccountTradingLogRow', aggregatedTradingLog);
+        TemplateEngine.bindTableRows('jpyAccountTradingLogRow', formattedTradingLog);
     }
 
     /**
@@ -339,56 +354,74 @@ class JpyAccount {
     }
 
     /**
-     * 過去10日間の株価変化率と増減株数の変化をまとめたテーブルを作成する関数
-     * @param {Object} closePriceData 終値データ（ExternalResource.fetchClosePriceDataで取得したデータ）
-     * @param {Array<Object>} jpyAccountTableData 現在の保有銘柄のテーブルデータ
-     * @param {Array<Object>} tradingLog 取引履歴データ
+     * 株式価格の現在比と株式増減数をテーブルに描画する関数
+     * @param {Object} currentPrices 現在価格データ
+     * @param {Array<Object>} totaledTradingLog 整形後取引履歴データ
      */
-    static drawPriceChangeTable(closePriceData, jpyAccountTableData, tradingLog) {
-        if (!closePriceData || !Array.isArray(closePriceData) || closePriceData.length < 2) {
-            console.warn('終値データが不足しています');
-        }
-        const MAX_DAYS = 10;
+    static drawPriceChangeTable(currentPrices, totaledTradingLog) {
+        // 現在価格を銘柄コードで即座に引けるようにする
+        const priceMap = new Map(currentPrices.map((cp) => [cp.code, cp.price]));
 
-        // 銘柄ごとのデータを計算、調整後現金は削除
-        const tableData = jpyAccountTableData
-            .filter((item) => item.name !== '調整後現金') // 調整後現金を除外
-            .map((data) => {
-                const newTableRowData = {};
-                newTableRowData.code = data.code;
-                newTableRowData.name = data.name;
+        // 取引履歴に含まれる全銘柄を抽出（コードと名前のペア）
+        const allStocksMap = new Map();
+        totaledTradingLog.forEach((trade) => {
+            if (!allStocksMap.has(trade.code)) {
+                allStocksMap.set(trade.code, { code: trade.code, name: trade.name });
+            }
+        });
+        const allStocks = Array.from(allStocksMap.values());
 
-                // 株価変化率と増減株数の変化をまとめた配列を作成
-                for (let i = 0; i < MAX_DAYS; i++) {
-                    const key = data.code + '0'; // 東証API側の仕様で末尾に0を付与
-                    const pastPrice = closePriceData[i].closePrice[key];
-                    const pastDate = closePriceData[i].date;
+        // 取引履歴を日付ごとのマップにまとめ直す
+        const dateBasedTradingLog = new Map();
+        totaledTradingLog.forEach((trade) => {
+            if (!dateBasedTradingLog.has(trade.date)) {
+                dateBasedTradingLog.set(trade.date, []);
+            }
+            dateBasedTradingLog.get(trade.date).push(trade);
+        });
 
-                    // 株価変化率を計算
-                    let changeRate = ((data.currentPrice - pastPrice) / pastPrice) * 100;
+        // 日付ごとにデータを処理
+        const ratioAndQuantity = Array.from(dateBasedTradingLog.entries()).map(([date, dailyTrades]) => {
+            // 重複排除のために一度マップを経由させて集計
+            const tradeMap = new Map();
+            dailyTrades.forEach((trade) => {
+                const currentPrice = priceMap.get(trade.code);
+                const quantity = trade.tradeType === '買' ? trade.quantity : -trade.quantity;
+                const ratio = ((currentPrice - trade.price) / currentPrice) * 100;
 
-                    // 当該日の取引を抽出、増減株数を集計（買いはプラス、売りはマイナス）
-                    const trades = tradingLog.filter((trade) => {
-                        return trade.code === data.code && trade.date.includes(pastDate);
-                    });
-                    let totalQuantity = 0;
-                    trades.forEach((trade) => {
-                        const quantity = parseInt(trade.quantity, 10) || 0;
-                        if (trade.tradeType.includes('買')) {
-                            totalQuantity += quantity;
-                        } else if (trade.tradeType.includes('売')) {
-                            totalQuantity -= quantity;
-                        }
-                    });
+                if (tradeMap.has(trade.code)) {
+                    const existing = tradeMap.get(trade.code);
 
-                    newTableRowData[`changeRate${i + 1}`] = `${changeRate >= 0 ? '+' : ''}${changeRate.toFixed(2)}%`;
-                    newTableRowData[`tradeQuantity${i + 1}`] = totalQuantity.toLocaleString();
+                    // 同一銘柄で売り買いが完全に相殺される場合
+                    if (existing.quantity + quantity === 0) {
+                        existing.quantity = 0;
+                        existing.ratio = 0;
+                    } else {
+                        // 加重平均した価格比率を計算
+                        const oldWeight = (1 - existing.ratio / 100) * existing.quantity;
+                        const newWeight = (1 - ratio / 100) * quantity;
+                        existing.ratio = (-(oldWeight + newWeight) / (existing.quantity + quantity)) * 100 + 100;
+                        existing.quantity += quantity;
+                    }
+                } else {
+                    tradeMap.set(trade.code, { code: trade.code, name: trade.name, quantity, ratio });
                 }
-
-                return newTableRowData;
             });
 
-        // テーブル行をデータバインディング
-        TemplateEngine.bindTableRows('priceChangeTableRow', tableData);
+            // 取引がなかった銘柄を 0 で埋める
+            const filledData = allStocks.map((stock) => {
+                if (tradeMap.has(stock.code)) {
+                    return tradeMap.get(stock.code);
+                }
+                return { code: stock.code, name: stock.name, quantity: 0, ratio: 0 };
+            });
+
+            return {
+                date: date,
+                ratioAndQuantity: filledData,
+            };
+        });
+
+        TemplateEngine.bindPivotTable(ratioAndQuantity);
     }
 }

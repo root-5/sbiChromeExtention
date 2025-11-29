@@ -119,73 +119,31 @@
         </div>
         <!-- 株価変化率と売買数テーブルコンテナ -->
         <div id="priceChangeTableContainer">
-            <h2>株価変化率と売買数（過去10日間）</h2>
+            <h2>株価変化率と売買数</h2>
             <div class="table-wrapper">
-                <table>
+                <table id="priceChangeTable">
                     <!-- テーブルヘッダー -->
                     <thead>
-                        <tr>
+                        <tr data-bind="priceChangeHeaderRow">
                             <th rowspan="2" class="code-header">コード</th>
                             <th rowspan="2" class="name-header">銘柄名</th>
-                            <th colspan="2" data-bind="priceChangeDayLabel1">前日</th>
-                            <th colspan="2" data-bind="priceChangeDayLabel2">2日前</th>
-                            <th colspan="2" data-bind="priceChangeDayLabel3">3日前</th>
-                            <th colspan="2" data-bind="priceChangeDayLabel4">4日前</th>
-                            <th colspan="2" data-bind="priceChangeDayLabel5">5日前</th>
-                            <th colspan="2" data-bind="priceChangeDayLabel6">6日前</th>
-                            <th colspan="2" data-bind="priceChangeDayLabel7">7日前</th>
-                            <th colspan="2" data-bind="priceChangeDayLabel8">8日前</th>
-                            <th colspan="2" data-bind="priceChangeDayLabel9">9日前</th>
-                            <th colspan="2" data-bind="priceChangeDayLabel10">10日前</th>
+                            <!-- 日付列ヘッダーのテンプレート（複製される） -->
+                            <th colspan="2" data-bind="dateHeader" class="date-header"></th>
                         </tr>
-                        <tr>
-                            <th>変化率</th>
-                            <th>売買数</th>
-                            <th>変化率</th>
-                            <th>売買数</th>
-                            <th>変化率</th>
-                            <th>売買数</th>
-                            <th>変化率</th>
-                            <th>売買数</th>
-                            <th>変化率</th>
-                            <th>売買数</th>
-                            <th>変化率</th>
-                            <th>売買数</th>
-                            <th>変化率</th>
-                            <th>売買数</th>
-                            <th>変化率</th>
-                            <th>売買数</th>
-                            <th>変化率</th>
-                            <th>売買数</th>
-                            <th>変化率</th>
-                            <th>売買数</th>
+                        <tr data-bind="priceChangeSubHeaderRow">
+                            <!-- 変化率/売買数ヘッダーのテンプレート（複製される） -->
+                            <th data-bind="ratioHeader">変化率</th>
+                            <th data-bind="quantityHeader">売買数</th>
                         </tr>
                     </thead>
-                    <!-- テーブルボディ（データバインディング用） -->
+                    <!-- テーブルボディ -->
                     <tbody>
                         <tr data-bind="priceChangeTableRow">
                             <td data-bind="code" class="code"></td>
                             <td data-bind="name" class="name"></td>
-                            <td data-bind="changeRate1" class="changeRate"></td>
-                            <td data-bind="tradeQuantity1" class="tradeQuantity"></td>
-                            <td data-bind="changeRate2" class="changeRate"></td>
-                            <td data-bind="tradeQuantity2" class="tradeQuantity"></td>
-                            <td data-bind="changeRate3" class="changeRate"></td>
-                            <td data-bind="tradeQuantity3" class="tradeQuantity"></td>
-                            <td data-bind="changeRate4" class="changeRate"></td>
-                            <td data-bind="tradeQuantity4" class="tradeQuantity"></td>
-                            <td data-bind="changeRate5" class="changeRate"></td>
-                            <td data-bind="tradeQuantity5" class="tradeQuantity"></td>
-                            <td data-bind="changeRate6" class="changeRate"></td>
-                            <td data-bind="tradeQuantity6" class="tradeQuantity"></td>
-                            <td data-bind="changeRate7" class="changeRate"></td>
-                            <td data-bind="tradeQuantity7" class="tradeQuantity"></td>
-                            <td data-bind="changeRate8" class="changeRate"></td>
-                            <td data-bind="tradeQuantity8" class="tradeQuantity"></td>
-                            <td data-bind="changeRate9" class="changeRate"></td>
-                            <td data-bind="tradeQuantity9" class="tradeQuantity"></td>
-                            <td data-bind="changeRate10" class="changeRate"></td>
-                            <td data-bind="tradeQuantity10" class="tradeQuantity"></td>
+                            <!-- データセルのテンプレート（複製される） -->
+                            <td data-bind="ratio" class="changeRate"></td>
+                            <td data-bind="quantity" class="quantity"></td>
                         </tr>
                     </tbody>
                 </table>
