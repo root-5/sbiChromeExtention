@@ -64,7 +64,7 @@ body > div:nth-child(1) {
   text-align: left;
   font-family: Helvetica;
   font-weight: 400;
-  font-size: 14px; /* 基本フォントサイズ、em の基準 */
+  font-size: 13px; /* 基本フォントサイズ、em の基準 */
   vertical-align: middle;
   border: 2px solid #0066cc;
   border-radius: 12px;
@@ -316,7 +316,7 @@ body > div:nth-child(1) {
 
       th.name-header {
         position: sticky;
-        left: 63px;
+        left: 4.8em;
         z-index: 10;
         background: #0066cc;
       }
@@ -348,7 +348,7 @@ body > div:nth-child(1) {
         &.name {
           background: #ffffff;
           position: sticky;
-          left: 63px;
+          left: 4.55em;
           z-index: 5;
           white-space: nowrap;
         }
