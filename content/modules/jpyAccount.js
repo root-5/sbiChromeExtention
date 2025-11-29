@@ -362,6 +362,15 @@ class JpyAccount {
         // 現在価格を銘柄コードで即座に引けるようにする
         const priceMap = new Map(currentPrices.map((cp) => [cp.code, cp.price]));
 
+        // 取引履歴に含まれる全銘柄を抽出（コードと名前のペア）
+        const allStocksMap = new Map();
+        totaledTradingLog.forEach((trade) => {
+            if (!allStocksMap.has(trade.code)) {
+                allStocksMap.set(trade.code, { code: trade.code, name: trade.name });
+            }
+        });
+        const allStocks = Array.from(allStocksMap.values());
+
         // 取引履歴を日付ごとのマップにまとめ直す
         const dateBasedTradingLog = new Map();
         totaledTradingLog.forEach((trade) => {
@@ -377,36 +386,45 @@ class JpyAccount {
             const tradeMap = new Map();
             dailyTrades.forEach((trade) => {
                 const currentPrice = priceMap.get(trade.code);
-                const totalQuantity = trade.tradeType === '買' ? trade.quantity : -trade.quantity;
+                const quantity = trade.tradeType === '買' ? trade.quantity : -trade.quantity;
                 const ratio = ((currentPrice - trade.price) / currentPrice) * 100;
 
                 if (tradeMap.has(trade.code)) {
                     const existing = tradeMap.get(trade.code);
 
                     // 同一銘柄で売り買いが完全に相殺される場合
-                    if (existing.totalQuantity + totalQuantity === 0) {
-                        existing.totalQuantity = 0;
+                    if (existing.quantity + quantity === 0) {
+                        existing.quantity = 0;
                         existing.ratio = 0;
                     } else {
                         // 加重平均した価格比率を計算
-                        const oldWeight = (1 - existing.ratio / 100) * existing.totalQuantity;
-                        const newWeight = (1 - ratio / 100) * totalQuantity;
-                        existing.ratio = (-(oldWeight + newWeight) / (existing.totalQuantity + totalQuantity)) * 100 + 100;
-                        existing.totalQuantity += totalQuantity;
+                        const oldWeight = (1 - existing.ratio / 100) * existing.quantity;
+                        const newWeight = (1 - ratio / 100) * quantity;
+                        existing.ratio = (-(oldWeight + newWeight) / (existing.quantity + quantity)) * 100 + 100;
+                        existing.quantity += quantity;
                     }
                 } else {
-                    tradeMap.set(trade.code, { code: trade.code, name: trade.name, quantity: totalQuantity, ratio });
+                    tradeMap.set(trade.code, { code: trade.code, name: trade.name, quantity, ratio });
                 }
+            });
+
+            // 取引がなかった銘柄を 0 で埋める
+            const filledData = allStocks.map((stock) => {
+                if (tradeMap.has(stock.code)) {
+                    return tradeMap.get(stock.code);
+                }
+                return { code: stock.code, name: stock.name, quantity: 0, ratio: 0 };
             });
 
             return {
                 date: date,
-                ratioAndQuantity: Array.from(tradeMap.values()),
+                ratioAndQuantity: filledData,
             };
         });
 
-        // 
-
         console.log(ratioAndQuantity);
+
+        // ピボットテーブルを描画
+        TemplateEngine.bindPivotTable('priceChangeTable', ratioAndQuantity);
     }
 }

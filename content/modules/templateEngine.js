@@ -128,4 +128,96 @@ class TemplateEngine {
             });
         });
     }
+
+    /**
+     * ピボットテーブル（横軸: 日付、縦軸: 銘柄）を描画する関数
+     * @param {string} tableId テーブル要素のID
+     * @param {Array<{date: string, ratioAndQuantity: Array}>} pivotData 日付ごとの銘柄データ
+     */
+    static bindPivotTable(tableId, pivotData) {
+        const table = document.getElementById(tableId);
+        const thead = table.querySelector('thead');
+        const tbody = table.querySelector('tbody');
+
+        // 日付リストを取得（データの順序を維持）
+        const dates = pivotData.map((d) => d.date);
+
+        // 全銘柄をユニークに抽出（code順でソート）
+        const stockMap = new Map();
+        pivotData.forEach((dayData) => {
+            dayData.ratioAndQuantity.forEach((item) => {
+                if (!stockMap.has(item.code)) {
+                    stockMap.set(item.code, item.name);
+                }
+            });
+        });
+        const stocks = Array.from(stockMap.entries())
+            .sort((a, b) => a[0].localeCompare(b[0]))
+            .map(([code, name]) => ({ code, name }));
+
+        // 日付×銘柄のデータをマップ化（高速参照用）
+        const dataMap = new Map();
+        pivotData.forEach((dayData) => {
+            dayData.ratioAndQuantity.forEach((item) => {
+                dataMap.set(`${dayData.date}_${item.code}`, item);
+            });
+        });
+
+        // ヘッダー行を生成（2行構成: 日付行 + 変化率/売買数行）
+        thead.innerHTML = '';
+        const headerRow1 = document.createElement('tr');
+        const headerRow2 = document.createElement('tr');
+
+        // 固定列ヘッダー（コード、銘柄名）
+        headerRow1.innerHTML = '<th rowspan="2" class="code-header">コード</th><th rowspan="2" class="name-header">銘柄名</th>';
+
+        // 日付列ヘッダーを追加
+        dates.forEach((date) => {
+            const th = document.createElement('th');
+            th.setAttribute('colspan', '2');
+            th.textContent = date.slice(5); // MM/DD形式で表示
+            headerRow1.appendChild(th);
+
+            headerRow2.innerHTML += '<th>変化率</th><th>売買数</th>';
+        });
+
+        thead.appendChild(headerRow1);
+        thead.appendChild(headerRow2);
+
+        // ボディ行を生成
+        tbody.innerHTML = '';
+        stocks.forEach((stock) => {
+            const row = document.createElement('tr');
+
+            // 固定列（コード、銘柄名）
+            row.innerHTML = `<td class="code">${stock.code}</td><td class="name">${stock.name}</td>`;
+
+            // 各日付のデータセルを追加
+            dates.forEach((date) => {
+                const item = dataMap.get(`${date}_${stock.code}`);
+
+                // 変化率セル
+                const ratioCell = document.createElement('td');
+                ratioCell.className = 'changeRate';
+                if (item && item.ratio != null) {
+                    const ratioText = `${item.ratio >= 0 ? '+' : ''}${item.ratio.toFixed(2)}%`;
+                    ratioCell.textContent = ratioText;
+                    ratioCell.classList.add(item.ratio >= 0 ? 'positive' : 'negative');
+                }
+                row.appendChild(ratioCell);
+
+                // 売買数セル
+                const quantityCell = document.createElement('td');
+                quantityCell.className = 'tradeQuantity';
+                if (item && item.quantity != null) {
+                    const quantityText = `${item.quantity >= 0 ? '+' : ''}${item.quantity.toLocaleString()}`;
+                    quantityCell.textContent = quantityText;
+                    quantityCell.classList.add(item.quantity >= 0 ? 'positive' : 'negative');
+                }
+                row.appendChild(quantityCell);
+            });
+
+            tbody.appendChild(row);
+        });
+    }
 }
