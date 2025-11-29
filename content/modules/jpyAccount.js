@@ -243,12 +243,13 @@ class JpyAccount {
     }
 
     /**
-     * 取引履歴テーブルを作成する関数
+     * 取引履歴データから同一日の同一銘柄・同一売買で集計した整形後の配列を返す関数
      * @param {Array} tradingLog 取引履歴データ
+     * @returns {Array} 集計後の取引履歴データ配列
      */
-    static drawTradingLogTable(tradingLog) {
+    static totalTradingLog(tradingLog) {
         // 同一銘柄・同一売買・同一日付で集計し、新たな配列を作成
-        const aggregatedTradingLog = [];
+        const totaledTradingLog = [];
         tradingLog.forEach((item, _) => {
             const tradeTypeLabel = item.tradeType.includes('買') ? '買' : '売';
             const quantity = Number(String(item.quantity).replace(/[,\s]/g, ''));
@@ -256,10 +257,10 @@ class JpyAccount {
 
             // 重複チェックしつつ、重複している場合は集計
             let isDuplicate = false;
-            aggregatedTradingLog.forEach((existing) => {
+            totaledTradingLog.forEach((existing) => {
                 if (existing.date === item.date && existing.code === item.code && existing.tradeType === tradeTypeLabel) {
                     const totalQuantity = existing.quantity + quantity;
-                    existing.price = ((existing.price * existing.quantity + price * quantity) / totalQuantity).toFixed(0);
+                    existing.price = (existing.price * existing.quantity + price * quantity) / totalQuantity;
                     existing.quantity = totalQuantity;
                     isDuplicate = true;
                 }
@@ -267,7 +268,7 @@ class JpyAccount {
 
             // 重複していなければ新規追加
             if (!isDuplicate) {
-                aggregatedTradingLog.push({
+                totaledTradingLog.push({
                     code: item.code,
                     name: item.name,
                     date: item.date,
@@ -279,16 +280,30 @@ class JpyAccount {
         });
 
         // コード順、日付順でソート（優先は日付）
-        aggregatedTradingLog.sort((a, b) => {
+        totaledTradingLog.sort((a, b) => {
             if (a.date !== b.date) return b.date.localeCompare(a.date);
             return a.code.localeCompare(b.code);
         });
+        return totaledTradingLog;
+    }
+
+    /**
+     * 取引履歴テーブルを作成する関数
+     * @param {Array} totaledTradingLog 取引履歴データ
+     */
+    static drawTradingLogTable(totaledTradingLog = []) {
+        // 取引履歴データの quantity と price をカンマ区切りの文字列に変換
+        const formattedTradingLog = totaledTradingLog.map((item) => ({
+            ...item,
+            quantity: item.quantity.toLocaleString(),
+            price: Math.floor(item.price).toLocaleString(),
+        }));
 
         // 取引履歴のベースデータをキャッシュ
-        JpyAccount._tradingLogCache = aggregatedTradingLog;
+        JpyAccount._tradingLogCache = formattedTradingLog;
 
         // テーブル行をデータバインディング
-        TemplateEngine.bindTableRows('jpyAccountTradingLogRow', aggregatedTradingLog);
+        TemplateEngine.bindTableRows('jpyAccountTradingLogRow', formattedTradingLog);
     }
 
     /**
@@ -339,10 +354,9 @@ class JpyAccount {
     }
 
     /**
-     * 過去10日間の株価変化率と増減株数の変化をまとめたテーブルを作成する関数
-     * @param {Object} currentPrices 現在価格データ（ExternalResource.fetchCurrentPriceDataで取得したデータ）
-     * @param {Array<Object>} jpyAccountTableData 現在の保有銘柄のテーブルデータ
-     * @param {Array<Object>} tradingLog 取引履歴データ
+     * 過去20日間の株式価格の現在比と株式増減数をテーブルに描画する関数
+     * @param {Object} currentPrices 現在価格データ
+     * @param {Array<Object>} totaledTradingLog 整形後取引履歴データ
      */
     static drawPriceChangeTable(currentPrices, jpyAccountTableData, tradingLog) {
         if (!currentPrices || !Array.isArray(currentPrices) || currentPrices.length < 2) {

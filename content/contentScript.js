@@ -22,22 +22,23 @@ async function main() {
 
     // 初期描画
     const { tradingLog } = await JpyAccount.extractAccountDataJustOnce();
-    JpyAccount.drawTradingLogTable(tradingLog);
+    const totaledTradingLog = JpyAccount.totalTradingLog(tradingLog);
+    JpyAccount.drawTradingLogTable(totaledTradingLog);
 
     // 最初の更新（取引履歴を渡す）
-    await updateJpyAccount(tradingLog);
+    await updateJpyAccount(totaledTradingLog);
     TemplateEngine.updateTime('lastUpdateTime');
 
     // 1秒ごとに定期実行するスケジューラーをセット（取引履歴を渡す）
-    const scheduler = setInterval(() => schedulerTask(tradingLog), 1000);
+    const scheduler = setInterval(() => schedulerTask(totaledTradingLog), 1000);
     window.addEventListener('beforeunload', () => clearInterval(scheduler));
 }
 
 /**
  * 円建て口座データを取得して、グラフとテーブルを描画
- * @param {Array} tradingLog 取引履歴データ
+ * @param {Array} totaledTradingLog 整形後取引履歴データ
  */
-async function updateJpyAccount(tradingLog = []) {
+async function updateJpyAccount(totaledTradingLog = []) {
     // データ取得
     const { buyingPower, cashBalance, stocks, todayExecution } = await JpyAccount.extractAccountDataPerMinute();
     const jpyAccountTableData = JpyAccount.convertToTable({ cashBalance, stocks });
@@ -47,14 +48,14 @@ async function updateJpyAccount(tradingLog = []) {
     jpyAccountChart = JpyAccount.drawCircleChart(jpyAccountTableData, jpyAccountChart);
     JpyAccount.drawPortfolioTable({ buyingPower, cashBalance, stocks }, jpyAccountTableData);
     JpyAccount.drawTodayExecutionToTradingLogTable(todayExecution);
-    JpyAccount.drawPriceChangeTable(currentPrices, jpyAccountTableData, tradingLog);
+    JpyAccount.drawPriceChangeTable(currentPrices, totaledTradingLog);
 }
 
 /**
  * 時刻更新と円建て口座データの定期更新する関数
- * @param {Array} tradingLog 取引履歴データ
+ * @param {Array} totaledTradingLog 整形後取引履歴データ
  */
-function schedulerTask(tradingLog) {
+function schedulerTask(totaledTradingLog) {
     const now = new Date();
 
     // 時刻表示を更新
@@ -69,7 +70,7 @@ function schedulerTask(tradingLog) {
 
     // 毎分0秒に口座情報と最終更新時刻を更新
     if (now.getSeconds() === 0) {
-        updateJpyAccount(tradingLog);
+        updateJpyAccount(totaledTradingLog);
         TemplateEngine.updateTime('lastUpdateTime');
     }
 }
