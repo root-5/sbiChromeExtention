@@ -42,7 +42,7 @@ async function updateJpyAccount(totaledTradingLog = []) {
     // データ取得
     const { buyingPower, cashBalance, stocks, todayExecution } = await JpyAccount.extractAccountDataPerMinute();
     const jpyAccountTableData = JpyAccount.convertToTable({ cashBalance, stocks });
-    const currentPrices = await ExternalResource.fetchCurrentPrice(stocks);
+    const currentPrices = await ExternalResource.fetchCurrentPrice(totaledTradingLog);
 
     // UI更新（チャートはグローバル変数で保持）
     jpyAccountChart = JpyAccount.drawCircleChart(jpyAccountTableData, jpyAccountChart);
@@ -65,8 +65,8 @@ function schedulerTask(totaledTradingLog) {
     const day = now.getDay();
     const hours = now.getHours();
     const minutes = now.getMinutes();
-    // if (day === 0 || day === 6) return;
-    // if (hours < 9 || (hours === 15 && minutes > 30) || hours > 15) return;
+    if (day === 0 || day === 6) return;
+    if (hours < 9 || (hours === 15 && minutes > 30) || hours > 15) return;
 
     // 毎分0秒に口座情報と最終更新時刻を更新
     if (now.getSeconds() === 0) {

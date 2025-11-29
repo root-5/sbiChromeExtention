@@ -354,55 +354,72 @@ class JpyAccount {
     }
 
     /**
-     * 過去20日間の株式価格の現在比と株式増減数をテーブルに描画する関数
+     * 株式価格の現在比と株式増減数をテーブルに描画する関数
      * @param {Object} currentPrices 現在価格データ
      * @param {Array<Object>} totaledTradingLog 整形後取引履歴データ
      */
-    static drawPriceChangeTable(currentPrices, jpyAccountTableData, tradingLog) {
-        if (!currentPrices || !Array.isArray(currentPrices) || currentPrices.length < 2) {
-            console.warn('終値データが不足しています');
-        }
-        const MAX_DAYS = 10;
+    static drawPriceChangeTable(currentPrices, totaledTradingLog) {
+        // 現在価格データ (例: [{ code: '1234', price: 1500 }, ...])
+        // 整形後取引履歴データ (例: [{"code": "5253","name": "カバー","date": "2025/11/21","tradeType": "売","quantity": 2200,"price": 1635},...])
 
-        // 銘柄ごとのデータを計算、調整後現金は削除
-        const tableData = jpyAccountTableData
-            .filter((item) => item.name !== '調整後現金') // 調整後現金を除外
-            .map((data) => {
-                const newTableRowData = {};
-                newTableRowData.code = data.code;
-                newTableRowData.name = data.name;
+        // 出力データ構造例
+        // [
+        //   {
+        //     date: '2024/06/01',
+        //     tradeData: [
+        //       { name: 'トレンドマイクロ', totalQuantity: 100, priceRatio: 2.3 },
+        //       { name: 'カバー', totalQuantity: -1300, priceRatio: -0.5 },
+        //       ...
+        //     ]
+        //   },
+        //   ...
+        // ]
 
-                // 株価変化率と増減株数の変化をまとめた配列を作成
-                for (let i = 0; i < MAX_DAYS; i++) {
-                    const key = data.code + '0'; // 東証API側の仕様で末尾に0を付与
-                    const pastPrice = currentPrices[i].closePrice[key];
-                    const pastDate = currentPrices[i].date;
+        // 取引履歴を日付ごとまとめたマップを作成
+        const dateBasedTradingLog = new Map();
+        totaledTradingLog.forEach((trade) => {
+            if (!dateBasedTradingLog.has(trade.date)) {
+                dateBasedTradingLog.set(trade.date, []);
+            }
+            dateBasedTradingLog.get(trade.date).push(trade);
+        });
 
-                    // 株価変化率を計算
-                    let changeRate = ((data.currentPrice - pastPrice) / pastPrice) * 100;
+        // 日付ごとにデータを処理
+        const dateWiseData = Array.from(dateBasedTradingLog.entries()).map(([date, dailyTrades]) => {
+            // 銘柄ごとの増減数と価格比率を Map で集計
+            const tradeMap = new Map();
 
-                    // 当該日の取引を抽出、増減株数を集計（買いはプラス、売りはマイナス）
-                    const trades = tradingLog.filter((trade) => {
-                        return trade.code === data.code && trade.date.includes(pastDate);
-                    });
-                    let totalQuantity = 0;
-                    trades.forEach((trade) => {
-                        const quantity = parseInt(trade.quantity, 10) || 0;
-                        if (trade.tradeType.includes('買')) {
-                            totalQuantity += quantity;
-                        } else if (trade.tradeType.includes('売')) {
-                            totalQuantity -= quantity;
-                        }
-                    });
+            dailyTrades.forEach((trade) => {
+                const currentPriceData = currentPrices.find((cp) => cp.code === trade.code);
+                const currentPrice = currentPriceData.price;
+                const totalQuantity = trade.tradeType === '買' ? trade.quantity : -trade.quantity;
+                const priceDiff = currentPrice - trade.price;
+                const priceRatio = (priceDiff / currentPrice) * 100;
 
-                    newTableRowData[`changeRate${i + 1}`] = `${changeRate >= 0 ? '+' : ''}${changeRate.toFixed(2)}%`;
-                    newTableRowData[`tradeQuantity${i + 1}`] = totalQuantity.toLocaleString();
+                if (tradeMap.has(trade.name)) {
+                    const existing = tradeMap.get(trade.name);
+                    // 同一銘柄で売り買いが完全に相殺される場合
+                    if (existing.totalQuantity + totalQuantity === 0) {
+                        existing.totalQuantity = 0;
+                        existing.priceRatio = 0;
+                    } else {
+                        // 加重平均した価格比率を計算
+                        const oldWeight = (1 - existing.priceRatio / 100) * existing.totalQuantity;
+                        const newWeight = (1 - priceRatio / 100) * totalQuantity;
+                        existing.priceRatio = (-(oldWeight + newWeight) / (existing.totalQuantity + totalQuantity)) * 100 + 100;
+                        existing.totalQuantity += totalQuantity;
+                    }
+                } else {
+                    tradeMap.set(trade.name, { name: trade.name, totalQuantity, priceRatio });
                 }
-
-                return newTableRowData;
             });
 
-        // テーブル行をデータバインディング
-        TemplateEngine.bindTableRows('priceChangeTableRow', tableData);
+            return {
+                date: date,
+                tradeData: Array.from(tradeMap.values()),
+            };
+        });
+
+        console.log(dateWiseData);
     }
 }
