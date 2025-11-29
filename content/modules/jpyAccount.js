@@ -359,23 +359,10 @@ class JpyAccount {
      * @param {Array<Object>} totaledTradingLog 整形後取引履歴データ
      */
     static drawPriceChangeTable(currentPrices, totaledTradingLog) {
-        // 現在価格データ (例: [{ code: '1234', price: 1500 }, ...])
-        // 整形後取引履歴データ (例: [{"code": "5253","name": "カバー","date": "2025/11/21","tradeType": "売","quantity": 2200,"price": 1635},...])
+        // 現在価格を銘柄コードで即座に引けるようにする
+        const priceMap = new Map(currentPrices.map((cp) => [cp.code, cp.price]));
 
-        // 出力データ構造例
-        // [
-        //   {
-        //     date: '2024/06/01',
-        //     tradeData: [
-        //       { name: 'トレンドマイクロ', totalQuantity: 100, priceRatio: 2.3 },
-        //       { name: 'カバー', totalQuantity: -1300, priceRatio: -0.5 },
-        //       ...
-        //     ]
-        //   },
-        //   ...
-        // ]
-
-        // 取引履歴を日付ごとまとめたマップを作成
+        // 取引履歴を日付ごとのマップにまとめ直す
         const dateBasedTradingLog = new Map();
         totaledTradingLog.forEach((trade) => {
             if (!dateBasedTradingLog.has(trade.date)) {
@@ -385,41 +372,41 @@ class JpyAccount {
         });
 
         // 日付ごとにデータを処理
-        const dateWiseData = Array.from(dateBasedTradingLog.entries()).map(([date, dailyTrades]) => {
-            // 銘柄ごとの増減数と価格比率を Map で集計
+        const ratioAndQuantity = Array.from(dateBasedTradingLog.entries()).map(([date, dailyTrades]) => {
+            // 重複排除のために一度マップを経由させて集計
             const tradeMap = new Map();
-
             dailyTrades.forEach((trade) => {
-                const currentPriceData = currentPrices.find((cp) => cp.code === trade.code);
-                const currentPrice = currentPriceData.price;
+                const currentPrice = priceMap.get(trade.code);
                 const totalQuantity = trade.tradeType === '買' ? trade.quantity : -trade.quantity;
-                const priceDiff = currentPrice - trade.price;
-                const priceRatio = (priceDiff / currentPrice) * 100;
+                const ratio = ((currentPrice - trade.price) / currentPrice) * 100;
 
-                if (tradeMap.has(trade.name)) {
-                    const existing = tradeMap.get(trade.name);
+                if (tradeMap.has(trade.code)) {
+                    const existing = tradeMap.get(trade.code);
+
                     // 同一銘柄で売り買いが完全に相殺される場合
                     if (existing.totalQuantity + totalQuantity === 0) {
                         existing.totalQuantity = 0;
-                        existing.priceRatio = 0;
+                        existing.ratio = 0;
                     } else {
                         // 加重平均した価格比率を計算
-                        const oldWeight = (1 - existing.priceRatio / 100) * existing.totalQuantity;
-                        const newWeight = (1 - priceRatio / 100) * totalQuantity;
-                        existing.priceRatio = (-(oldWeight + newWeight) / (existing.totalQuantity + totalQuantity)) * 100 + 100;
+                        const oldWeight = (1 - existing.ratio / 100) * existing.totalQuantity;
+                        const newWeight = (1 - ratio / 100) * totalQuantity;
+                        existing.ratio = (-(oldWeight + newWeight) / (existing.totalQuantity + totalQuantity)) * 100 + 100;
                         existing.totalQuantity += totalQuantity;
                     }
                 } else {
-                    tradeMap.set(trade.name, { name: trade.name, totalQuantity, priceRatio });
+                    tradeMap.set(trade.code, { code: trade.code, name: trade.name, quantity: totalQuantity, ratio });
                 }
             });
 
             return {
                 date: date,
-                tradeData: Array.from(tradeMap.values()),
+                ratioAndQuantity: Array.from(tradeMap.values()),
             };
         });
 
-        console.log(dateWiseData);
+        // 
+
+        console.log(ratioAndQuantity);
     }
 }
