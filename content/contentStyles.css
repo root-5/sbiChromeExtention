@@ -359,7 +359,6 @@ body > div:nth-child(1) {
           &.positive,
           &.negative {
             font-weight: 600;
-            color: #28a745;
           }
         }
         &.quantity {

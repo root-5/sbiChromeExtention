@@ -209,7 +209,6 @@ class TemplateEngine {
                 // 売買数セル
                 const quantityCell = dateIndex === 0 ? quantityCellTemplate : quantityCellTemplate.cloneNode(true);
                 quantityCell.textContent = '-';
-                quantityCell.classList.remove('positive', 'negative');
                 if (item && item.quantity != null && item.quantity !== 0) {
                     const quantityText = `${item.quantity >= 0 ? '+' : ''}${item.quantity.toLocaleString()}`;
                     quantityCell.textContent = quantityText;
