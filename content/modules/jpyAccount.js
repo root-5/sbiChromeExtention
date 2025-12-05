@@ -199,7 +199,7 @@ class JpyAccount {
             let dayChangeDiffText = '-';
             if (item.dayChange || item.dayChange === 0) {
                 // 5時前後に前日比がリセットされるため
-                const dayChangeRate = item.currentPrice && item.dayChange ? (item.dayChange / (item.currentPrice - item.dayChange)) * 100 : null;
+                const dayChangeRate = item.currentPrice && item.dayChange ? (item.dayChange / (item.currentPrice - item.dayChange)) * 100 : 0;
                 dayChangeRateText = `${dayChangeRate >= 0 ? '+' : ''}${dayChangeRate.toFixed(2)}`;
                 dayChangeDiffText = `${item.dayChange >= 0 ? '+' : ''}${item.dayChange.toLocaleString()}`;
             }
