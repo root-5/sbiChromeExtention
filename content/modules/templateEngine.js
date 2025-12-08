@@ -191,12 +191,16 @@ class TemplateEngine {
             clearDynamicElements(row, '[data-bind="ratio"]');
             clearDynamicElements(row, '[data-bind="quantity"]');
 
+            // この行における最初のセルを取得（dateIndex === 0 用）
+            const firstRatioCell = row.querySelector('[data-bind="ratio"]');
+            const firstQuantityCell = row.querySelector('[data-bind="quantity"]');
+
             // 各日付のデータセルを複製・バインド
             dates.forEach((date, dateIndex) => {
                 const item = dataMap.get(`${date}_${stock.code}`);
 
                 // 変化率セル
-                const ratioCell = dateIndex === 0 ? ratioCellTemplate : ratioCellTemplate.cloneNode(true);
+                const ratioCell = dateIndex === 0 ? firstRatioCell : ratioCellTemplate.cloneNode(true);
                 ratioCell.textContent = '-';
                 ratioCell.classList.remove('positive', 'negative');
                 if (item && item.ratio != null && item.ratio !== 0) {
@@ -207,7 +211,7 @@ class TemplateEngine {
                 if (dateIndex > 0) row.appendChild(ratioCell);
 
                 // 売買数セル
-                const quantityCell = dateIndex === 0 ? quantityCellTemplate : quantityCellTemplate.cloneNode(true);
+                const quantityCell = dateIndex === 0 ? firstQuantityCell : quantityCellTemplate.cloneNode(true);
                 quantityCell.textContent = '-';
                 if (item && item.quantity != null && item.quantity !== 0) {
                     const quantityText = `${item.quantity >= 0 ? '+' : ''}${item.quantity.toLocaleString()}`;
