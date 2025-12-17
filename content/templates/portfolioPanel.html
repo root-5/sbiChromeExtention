@@ -19,25 +19,44 @@
         <div>
             <!-- ポートフォリオサマリーコンテナ -->
             <div id="jpyAccountSummaryContainer">
-                <h2>サマリー</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>純資産</th>
-                            <th>総資産</th>
-                            <th>レバレッジ</th>
-                            <th>買付余力</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="amount" data-bind="netTotalMarketCap">-</td>
-                            <td class="amount" data-bind="totalMarketCap">-</td>
-                            <td class="amount" data-bind="leverage">-</td>
-                            <td class="amount" data-bind="buyingPower">-</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div>
+                    <h2>サマリー</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>純資産</th>
+                                <th>総資産</th>
+                                <th>レバレッジ</th>
+                                <th>買付余力</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="amount" data-bind="netTotalMarketCap">-</td>
+                                <td class="amount" data-bind="totalMarketCap">-</td>
+                                <td class="amount" data-bind="leverage">-</td>
+                                <td class="amount" data-bind="buyingPower">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div>
+                    <h2>レバレッジ</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>基準</th>
+                                <th>差額</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr data-bind="leverageManagementRow">
+                                <td data-bind="label"></td>
+                                <td class="amount" data-bind="diff"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <!-- ポートフォリオテーブルコンテナ -->
             <div id="jpyAccountTableContainer">

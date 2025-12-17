@@ -187,6 +187,18 @@ class JpyAccount {
         // 純資産を計算（現物は時価評価、信用は損益を加算）
         const netTotalMarketCap = data.cashBalance + data.stocks.reduce((sum, item) => sum + (item.marginType === '現物' ? item.marketCap : item.profitAndLoss), 0);
 
+        // レバレッジ管理データの計算とバインド
+        const leverageRatios = [1.5, 1.35, 1.2];
+        const leverageManagementData = leverageRatios.map((ratio) => {
+            const targetTotalAssets = netTotalMarketCap * ratio;
+            const diff = targetTotalAssets - totalMarketCap;
+            return {
+                label: `${Math.round(ratio * 100)}%基準`,
+                diff: `¥${Math.floor(diff).toLocaleString()}`,
+            };
+        });
+        TemplateEngine.bindTableRows('leverageManagementRow', leverageManagementData);
+
         // テーブル行データを生成
         const tableTextData = tableData.map((item) => {
             // 調整後現金の場合

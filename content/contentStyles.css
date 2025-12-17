@@ -225,8 +225,18 @@ body > div:nth-child(1) {
   }
 }
 
-#jpyAccountSummaryContainer table {
-  width: fit-content;
+#jpyAccountSummaryContainer {
+  display: flex;
+  gap: 2em;
+  /* justify-content: space-between; */
+
+  /* div {
+    width: calc(50% - 2em);
+  } */
+
+  table {
+    width: fit-content;
+  }
 }
 
 /* 取引履歴テーブルコンテナ（当日約定含む） */
