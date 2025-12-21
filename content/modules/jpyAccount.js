@@ -6,6 +6,31 @@
  */
 class JpyAccount {
     /**
+     * 終値データを一度だけ取得してキャッシュする関数
+     * @param {Array<Object>} totaledTradingLog 整形後取引履歴データ
+     * @returns {Promise<Array>} 終値データ配列
+     */
+    static async ensureClosePriceCache(totaledTradingLog = []) {
+        if (JpyAccount._closePriceCache) return JpyAccount._closePriceCache;
+
+        const codes = [...new Set(totaledTradingLog.map((trade) => trade.code).filter(Boolean))];
+        if (!codes.length) {
+            JpyAccount._closePriceCache = [];
+            return JpyAccount._closePriceCache;
+        }
+
+        // ExternalResource 側は stocks 配列を受け取るため、code プロパティを持つ形に揃える
+        const stockCodes = codes.map((code) => ({ code }));
+        const res = await ExternalResource.fetchClosePriceData(stockCodes, 15);
+        if (res?.success === false) {
+            JpyAccount._closePriceCache = [];
+            return JpyAccount._closePriceCache;
+        }
+
+        JpyAccount._closePriceCache = res?.closePriceData || [];
+        return JpyAccount._closePriceCache;
+    }
+    /**
      * 円建て口座データの抽出する関数（1分ごとに実行）
      * @returns {Promise<{buyingPower: number, cashBalance: number, stocks: Array}>} 円建て口座データ
      */
@@ -370,9 +395,19 @@ class JpyAccount {
      * @param {Object} currentPrices 現在価格データ
      * @param {Array<Object>} totaledTradingLog 整形後取引履歴データ
      */
-    static drawPriceChangeTable(currentPrices, totaledTradingLog) {
+    static drawPriceChangeTable(currentPrices, totaledTradingLog, closePriceData = []) {
         // 現在価格を銘柄コードで即座に引けるようにする
         const priceMap = new Map(currentPrices.map((cp) => [cp.code, cp.price]));
+
+        // 終値を日付×銘柄コードで即座に引けるようにする
+        const closePriceMap = new Map();
+        closePriceData.forEach((item) => {
+            if (!item?.date || !item.closePrice) return;
+            Object.entries(item.closePrice).forEach(([code, price]) => {
+                if (price == null) return;
+                closePriceMap.set(`${item.date}_${code}`, price);
+            });
+        });
 
         // 取引履歴に含まれる全銘柄を抽出（コードと名前のペア）
         const allStocksMap = new Map();
@@ -420,11 +455,19 @@ class JpyAccount {
                 }
             });
 
-            // 取引がなかった銘柄を 0 で埋める
+            // 取引がなかった銘柄は終値と現在値で変化率を計算して補完
             const filledData = allStocks.map((stock) => {
                 if (tradeMap.has(stock.code)) {
                     return tradeMap.get(stock.code);
                 }
+
+                const closePrice = closePriceMap.get(`${date}_${stock.code}`);
+                const currentPrice = priceMap.get(stock.code);
+                if (closePrice && currentPrice) {
+                    const ratio = ((currentPrice - closePrice) / closePrice) * 100;
+                    return { code: stock.code, name: stock.name, quantity: 0, ratio };
+                }
+
                 return { code: stock.code, name: stock.name, quantity: 0, ratio: 0 };
             });
 

@@ -44,12 +44,13 @@ async function updateJpyAccount(totaledTradingLog = []) {
     const { buyingPower, cashBalance, stocks, todayExecution } = await JpyAccount.extractAccountDataPerMinute();
     const jpyAccountTableData = JpyAccount.convertToTable({ cashBalance, stocks });
     const currentPrices = await ExternalResource.fetchCurrentPrice(totaledTradingLog);
+    const closePriceData = await JpyAccount.ensureClosePriceCache(totaledTradingLog);
 
     // UI更新（チャートはグローバル変数で保持）
     jpyAccountChart = JpyAccount.drawCircleChart(jpyAccountTableData, jpyAccountChart);
     JpyAccount.drawPortfolioTable({ buyingPower, cashBalance, stocks }, jpyAccountTableData);
     JpyAccount.drawTodayExecutionToTradingLogTable(todayExecution);
-    JpyAccount.drawPriceChangeTable(currentPrices, totaledTradingLog);
+    JpyAccount.drawPriceChangeTable(currentPrices, totaledTradingLog, closePriceData);
 }
 
 /**
