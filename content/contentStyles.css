@@ -239,6 +239,98 @@ body > div:nth-child(1) {
   }
 }
 
+#calcToolsContainer {
+  margin-top: 30px;
+
+  /* レバレッジ簡易計算のスタイル */
+  #leverageCalculator {
+    margin-top: 16px;
+    padding: 14px 16px;
+    border: 1px dashed #0066cc;
+    border-radius: 10px;
+    background: #f5f9ff;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    h3 {
+      margin: 0;
+      font-size: 1em;
+      color: #004499;
+    }
+
+    .leverageCalcControls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 14px;
+
+      @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .leverageCalcControl {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 10px 12px;
+      background: #ffffff;
+      border: 1px solid #d6e6f7;
+      border-radius: 8px;
+
+      .question {
+        font-weight: 600;
+        color: #003366;
+        line-height: 1.4;
+      }
+
+      select {
+        padding: 8px;
+        border: 1px solid #b6c6d6;
+        border-radius: 6px;
+        background: #f8fbff;
+        font-size: 0.95em;
+        color: #333333;
+      }
+    }
+
+    .leverageCalcResult {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: baseline;
+      gap: 8px;
+      padding: 12px 14px;
+      background: linear-gradient(90deg, #e8f2ff, #f9fcff);
+      border: 1px solid #c5daf4;
+      border-radius: 8px;
+
+      .resultLabel {
+        font-weight: 700;
+        color: #004499;
+      }
+
+      .resultValue {
+        font-size: 1.4em;
+        font-weight: 700;
+        color: #0066cc;
+        text-align: right;
+      }
+
+      .resultUnit {
+        font-weight: 600;
+        color: #004499;
+      }
+
+      .resultDetail {
+        grid-column: 1 / -1;
+        font-size: 0.9em;
+        color: #555555;
+        line-height: 1.4;
+      }
+    }
+  }
+}
+
 /* 取引履歴テーブルコンテナ（当日約定含む） */
 #jpyAccountTradingLogContainer {
   width: calc(43% - 1em);

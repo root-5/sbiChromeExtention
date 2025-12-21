@@ -169,4 +169,51 @@
             </div>
         </div>
     </div>
+    <div id="calcToolsContainer">
+        <h2>計算ツール</h2>
+        <div id="leverageCalculator">
+            <h3>レバレッジ簡易計算</h3>
+            <div class="leverageCalcControls">
+                <label class="leverageCalcControl" for="maxDrawdownSelect">
+                    <span class="question">最大DDをどこまで許容するのか</span>
+                    <select id="maxDrawdownSelect" data-leverage-select="maxDrawdown">
+                        <option value="dd30">最大DD▲30％まで許容（ベース 0.55）</option>
+                        <option value="dd50">最大DD▲50％まで許容（ベース 0.90）</option>
+                        <option value="dd66">最大DD▲66％まで許容（ベース 1.20）</option>
+                    </select>
+                </label>
+                <label class="leverageCalcControl" for="shockSelect">
+                    <span class="question">最高値更新中にリーマン級ショックをケアするか</span>
+                    <select id="shockSelect" data-leverage-select="shockCare">
+                        <option value="care">ケアする（×1）</option>
+                        <option value="ignore">ケアしない（×55/33）</option>
+                    </select>
+                </label>
+                <label class="leverageCalcControl" for="stockTypeSelect">
+                    <span class="question">保有している銘柄は指数・大型株・小型株のどれに近いか</span>
+                    <select id="stockTypeSelect" data-leverage-select="stockType">
+                        <option value="index">指数（×1）</option>
+                        <option value="largeMultiple">大型株複数（×0.80）</option>
+                        <option value="largeSingle">大型株単体（×0.66）</option>
+                        <option value="smallMultiple">小型株複数（×0.50）</option>
+                        <option value="smallSingle">小型株単体（×0.33）</option>
+                    </select>
+                </label>
+                <label class="leverageCalcControl" for="drawdownLeverageSelect">
+                    <span class="question">下落時レバレッジでどれくらいレバレッジをかけるか</span>
+                    <select id="drawdownLeverageSelect" data-leverage-select="drawdown">
+                        <option value="recentHigh">直近4年の最高値（×1）</option>
+                        <option value="drop30">直近4年の最高値から30%下落（×1.5）</option>
+                        <option value="drop60">直近4年の最高値から60%下落（×2.0）</option>
+                    </select>
+                </label>
+            </div>
+            <div class="leverageCalcResult">
+                <div class="resultLabel">計算結果</div>
+                <div class="resultValue" data-leverage-result>--</div>
+                <div class="resultUnit">倍</div>
+                <div class="resultDetail" data-leverage-detail>ベースレバレッジと各倍率を選択してください</div>
+            </div>
+        </div>
+    </div>
 </div>

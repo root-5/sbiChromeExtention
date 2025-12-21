@@ -24,6 +24,7 @@ async function main() {
     const { tradingLog } = await JpyAccount.extractAccountDataJustOnce();
     const totaledTradingLog = JpyAccount.totalTradingLog(tradingLog);
     JpyAccount.drawTradingLogTable(totaledTradingLog);
+    setupLeverageCalculator();
 
     // 最初の更新（取引履歴を渡す）
     await updateJpyAccount(totaledTradingLog);
