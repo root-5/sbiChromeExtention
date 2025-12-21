@@ -30,7 +30,7 @@ body
 
 /* ヘッダーの高さを調整し、ホバー時だけ表示させるようにする */
 body > div:nth-child(1) > header.slc-header > nav.slc-header-nav {
-  height: 65px;
+  height: 4.0625em;
 }
 body > div:nth-child(1) {
   position: fixed;
@@ -56,26 +56,26 @@ body > div:nth-child(1) {
 #jpyAccountPanel {
   position: relative;
   width: 90%;
-  max-width: 1200px;
-  margin: 20px auto;
+  max-width: 75em;
+  margin: 1.25em auto;
   padding: 2em;
   background: #ffffff;
   color: #333333;
   text-align: left;
   font-family: Helvetica;
   font-weight: 400;
-  font-size: 13px; /* 基本フォントサイズ、em の基準 */
+  font-size: 0.8125em; /* 基本フォントサイズ、em の基準 */
   vertical-align: middle;
-  border: 2px solid #0066cc;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 0.125em solid #0066cc;
+  border-radius: 0.75em;
+  box-shadow: 0 0.25em 1.25em rgba(0, 0, 0, 0.15);
   overflow: hidden;
 
-  @media (max-width: 968px) {
+  @media (max-width: 60.5em) {
     font-size: 0.9em;
-    margin: 20px;
+    margin: 1.25em;
   }
-  @media (max-width: 480px) {
+  @media (max-width: 30em) {
     font-size: 0.8em;
   }
 
@@ -84,7 +84,7 @@ body > div:nth-child(1) {
     font-weight: bold;
   }
   h2 {
-    margin-bottom: 10px;
+    margin-bottom: 0.625em;
     color: #0066cc;
     font-size: 1.2em;
     font-weight: 600;
@@ -100,7 +100,7 @@ body > div:nth-child(1) {
   table {
     border-collapse: collapse;
     background: #ffffff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0.125em 0.5em rgba(0, 0, 0, 0.1);
     vertical-align: middle;
 
     td,
@@ -108,14 +108,14 @@ body > div:nth-child(1) {
       padding: 0.8em 0.9em;
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 48em) {
       th,
       td {
         padding: 0.7em 0.8em;
       }
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 30em) {
       th,
       td {
         padding: 0.6em 0.7em;
@@ -132,12 +132,12 @@ body > div:nth-child(1) {
     thead {
       color: white;
       background: linear-gradient(135deg, #0066cc, #004499);
-      border-bottom: 2px solid #003366;
+      border-bottom: 0.125em solid #003366;
       white-space: nowrap;
     }
 
     tbody tr {
-      border-bottom: 1px solid #e9ecef;
+      border-bottom: 0.0625em solid #e9ecef;
       transition: background-color 0.2s ease;
 
       &:hover {
@@ -147,11 +147,11 @@ body > div:nth-child(1) {
 
     tfoot {
       background: #f8f9fa;
-      border-top: 2px solid #0066cc;
+      border-top: 0.125em solid #0066cc;
 
       td {
         font-weight: bold;
-        padding: 12px 14px;
+        padding: 0.75em 0.875em;
         color: #0066cc;
       }
     }
@@ -163,33 +163,33 @@ body > div:nth-child(1) {
   display: flex;
   align-items: center;
   justify-content: end;
-  gap: 12px;
+  gap: 0.75em;
 
   .clockValue {
     color: #0066cc;
-    padding-top: 3px;
+    padding-top: 0.1875em;
   }
 }
 
 /* 円グラフコンテナ */
 #jpyAccountPieChartContainer {
-  padding: 20px;
+  padding: 1.25em;
   width: 35%;
-  max-width: 375px;
+  max-width: 23.4375em;
   aspect-ratio: 1;
 
-  @media (max-width: 480px) {
-    padding: 15px;
+  @media (max-width: 30em) {
+    padding: 0.9375em;
   }
 }
 
 /* ポートフォリオテーブルのスタイル */
 #jpyAccountSummaryContainer,
 #jpyAccountTableContainer {
-  padding-top: 20px;
+  padding-top: 1.25em;
 
-  @media (max-width: 480px) {
-    padding: 10px;
+  @media (max-width: 30em) {
+    padding: 0.625em;
     overflow-x: auto;
   }
 
@@ -240,18 +240,18 @@ body > div:nth-child(1) {
 }
 
 #calcToolsContainer {
-  margin-top: 30px;
+  margin-top: 1.875em;
 
   /* レバレッジ簡易計算のスタイル */
   #leverageCalculator {
-    margin-top: 16px;
-    padding: 14px 16px;
-    border: 1px dashed #0066cc;
-    border-radius: 10px;
+    margin-top: 1em;
+    padding: 0.875em 1em;
+    border: 0.0625em dashed #0066cc;
+    border-radius: 0.625em;
     background: #f5f9ff;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 0.75em;
 
     h3 {
       margin: 0;
@@ -262,9 +262,9 @@ body > div:nth-child(1) {
     .leverageCalcControls {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px 14px;
+      gap: 0.625em 0.875em;
 
-      @media (max-width: 768px) {
+      @media (max-width: 48em) {
         grid-template-columns: 1fr;
       }
     }
@@ -272,11 +272,11 @@ body > div:nth-child(1) {
     .leverageCalcControl {
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      padding: 10px 12px;
+      gap: 0.375em;
+      padding: 0.625em 0.75em;
       background: #ffffff;
-      border: 1px solid #d6e6f7;
-      border-radius: 8px;
+      border: 0.0625em solid #d6e6f7;
+      border-radius: 0.5em;
 
       .question {
         font-weight: 600;
@@ -285,9 +285,9 @@ body > div:nth-child(1) {
       }
 
       select {
-        padding: 8px;
-        border: 1px solid #b6c6d6;
-        border-radius: 6px;
+        padding: 0.5em;
+        border: 0.0625em solid #b6c6d6;
+        border-radius: 0.375em;
         background: #f8fbff;
         font-size: 0.95em;
         color: #333333;
@@ -298,11 +298,11 @@ body > div:nth-child(1) {
       display: grid;
       grid-template-columns: auto 1fr auto;
       align-items: baseline;
-      gap: 8px;
-      padding: 12px 14px;
+      gap: 0.5em;
+      padding: 0.75em 0.875em;
       background: linear-gradient(90deg, #e8f2ff, #f9fcff);
-      border: 1px solid #c5daf4;
-      border-radius: 8px;
+      border: 0.0625em solid #c5daf4;
+      border-radius: 0.5em;
 
       .resultLabel {
         font-weight: 700;
@@ -334,14 +334,14 @@ body > div:nth-child(1) {
 /* 取引履歴テーブルコンテナ（当日約定含む） */
 #jpyAccountTradingLogContainer {
   width: calc(43% - 1em);
-  margin-top: 30px;
+  margin-top: 1.875em;
 
   /* テーブルをラップする要素にスクロールを適用 */
   .table-wrapper {
     width: fit-content;
-    max-height: 400px;
+    max-height: 25em;
     overflow-y: auto;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0.125em 0.5em rgba(0, 0, 0, 0.1);
 
     &::-webkit-scrollbar {
       display: none;
@@ -382,13 +382,13 @@ body > div:nth-child(1) {
 /* 株価変化率と売買数テーブルコンテナ */
 #priceChangeTableContainer {
   width: calc(57% - 1em);
-  margin-top: 30px;
+  margin-top: 1.875em;
 
   /* テーブルをラップする要素にスクロールを適用 */
   .table-wrapper {
     width: 100%;
     overflow-x: auto;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0.125em 0.5em rgba(0, 0, 0, 0.1);
 
     &::-webkit-scrollbar {
       display: none;
@@ -397,7 +397,7 @@ body > div:nth-child(1) {
 
   table {
     width: 100%;
-    min-width: 1400px;
+    min-width: 87.5em;
 
     thead {
       position: sticky;
