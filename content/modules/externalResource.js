@@ -33,7 +33,7 @@ class ExternalResource {
     /**
      * 銘柄の配列から現在価格を取得する関数
      * @param {Array<Object>} stocks 銘柄の配列
-     * @returns {Array<Object>} - 現在価格の配列（ディレイ有）
+     * @returns {Promise<Array<Object>>} - 現在価格の配列（ディレイ有）
      */
     static async fetchCurrentPrice(stocks) {
         const codes = [...new Set(stocks.map((stock) => stock.code))];
