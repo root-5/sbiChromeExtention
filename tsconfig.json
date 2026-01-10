@@ -1,0 +1,32 @@
+{
+  // コンパイラのオプション設定
+  "compilerOptions": {
+    // 生成されるモジュールコードの指定 (esnext: 最新の標準機能を使用)
+    "module": "esnext",
+
+    // 出力されるJavaScriptのバージョン (es2020: 比較的新しいブラウザ向け)
+    "target": "es2020",
+
+    // .jsファイルのエラー報告を有効にする (TSの型システムでJSをチェック)
+    "checkJs": true,
+
+    // .jsファイルをコンパイル(チェック)対象に含める
+    "allowJs": true,
+
+    // 出力ファイルを生成しない (型チェックのみを行うためtrue)
+    "noEmit": true,
+
+    // コンパイルに含めるライブラリファイルのリスト
+    "lib": [
+      "es2020", // JavaScriptの最新機能
+      "dom", // ブラウザのDOM API
+      "dom.iterable", // DOMの反復可能オブジェクト
+      "webworker" // Service WorkerなどのWeb Worker API
+    ]
+  },
+  // コンパイル対象から除外するファイルやディレクトリ
+  "exclude": [
+    "node_modules", // 依存パッケージ
+    "libs" // 外部ライブラリ (型チェック対象外にする)
+  ]
+}
