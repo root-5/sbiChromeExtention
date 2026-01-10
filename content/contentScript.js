@@ -15,7 +15,7 @@ if (title.includes('ポートフォリオ')) main();
  * メイン処理
  */
 async function main() {
-    // テンプレートを読み込み
+    // テンプレートを読み込み、指定要素にセット
     const TARGET_ELE_ID = 'TIMEAREA01';
     const TEMPLATE = 'content/templates/portfolioPanel.html';
     await TemplateEngine.setTemplate(TARGET_ELE_ID, TEMPLATE);
@@ -46,8 +46,10 @@ async function updateJpyAccount(totaledTradingLog = []) {
     const currentPrices = await ExternalResource.fetchCurrentPrice(totaledTradingLog);
     const closePriceData = await JpyAccount.ensureClosePriceCache(totaledTradingLog);
 
-    // UI更新（チャートはグローバル変数で保持）
+    // チャートデータ更新
     jpyAccountChart = JpyAccount.drawCircleChart(jpyAccountTableData, jpyAccountChart);
+
+    // テーブル再描画
     JpyAccount.drawPortfolioTable({ buyingPower, cashBalance, stocks }, jpyAccountTableData);
     JpyAccount.drawTodayExecutionToTradingLogTable(todayExecution);
     JpyAccount.drawPriceChangeTable(currentPrices, totaledTradingLog, closePriceData);
