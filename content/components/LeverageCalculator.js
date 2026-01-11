@@ -1,56 +1,77 @@
-import { html, useState, useEffect } from '../utils/preact-adapter.js';
+// =======================================
+// レバレッジ簡易計算コンポーネント
+// =======================================
 
-export function LeverageCalculator({ netTotalMarketCap, totalMarketCap }) {
+import { html, useState, useMemo } from '../utils/preact-adapter.js';
+
+export function LeverageCalculator({}) {
     const LEVERAGE_STORAGE_KEY = 'sbiExtLeverageCalculator';
+    // localStorage.removeItem(LEVERAGE_STORAGE_KEY); // デバッグ用：設定リセット
 
-    // 設定値
-    const leverageConfig = {
-        maxDrawdown: { dd30: 0.55, dd50: 0.9, dd66: 1.2 },
-        shockCare: { care: 1, ignore: 55 / 33 },
-        stockType: { index: 1, largeMultiple: 0.8, largeSingle: 0.66, smallMultiple: 0.5, smallSingle: 0.33 },
-        drawdown: { recentHigh: 1, drop30: 1.5, drop60: 2.0 },
+    // レバレッジ計算用設定値
+    const pulldownData = {
+        maxDrawdown: [
+            { value: 0.55, text: '最大DD▲30％まで許容（ベース 0.55）' },
+            { value: 0.9, text: '最大DD▲50％まで許容（ベース 0.90）' },
+            { value: 1.2, text: '最大DD▲66％まで許容（ベース 1.20）' },
+        ],
+        shockCare: [
+            { value: 1, text: 'ケアする（×1）' },
+            { value: 55 / 33, text: 'ケアしない（×55/33）' },
+        ],
+        stockType: [
+            { value: 1, text: '指数（×1）' },
+            { value: 0.8, text: '大型株複数（×0.80）' },
+            { value: 0.66, text: '大型株単体（×0.66）' },
+            { value: 0.5, text: '小型株複数（×0.50）' },
+            { value: 0.33, text: '小型株単体（×0.33）' },
+        ],
+        drawdown: [
+            { value: 1, text: '直近4年の最高値（×1）' },
+            { value: 1.5, text: '直近4年の最高値から30%下落（×1.5）' },
+            { value: 2.0, text: '直近4年の最高値から60%下落（×2.0）' },
+        ],
     };
 
+    // 状態管理（localStorage の保存値があれば初期値として使用）
     const defaultState = {
-        maxDrawdown: 'dd30',
-        shockCare: 'care',
-        stockType: 'index',
-        drawdown: 'recentHigh',
+        maxDrawdown: pulldownData.maxDrawdown[0].value,
+        shockCare: pulldownData.shockCare[0].value,
+        stockType: pulldownData.stockType[0].value,
+        drawdown: pulldownData.drawdown[0].value,
     };
 
-    const [state, setState] = useState(() => {
-        const saved = localStorage.getItem(LEVERAGE_STORAGE_KEY);
-        if (saved) {
-            try {
-                return { ...defaultState, ...JSON.parse(saved) };
-            } catch (e) {
-                return defaultState;
-            }
+    const [pulldownState, setPulldownState] = useState(() => {
+        try {
+            const saved = localStorage.getItem(LEVERAGE_STORAGE_KEY);
+            return saved ? JSON.parse(saved) : defaultState;
+        } catch (e) {
+            return defaultState;
         }
-        return defaultState;
     });
 
-    const [result, setResult] = useState(0);
-    const [detailText, setDetailText] = useState('');
+    // 入力変更したときに状態更新とローカルストレージ保存を行う関数
+    const handleChange = (key, value) => {
+        const newState = { ...pulldownState, [key]: Number(value) };
+        setPulldownState(newState);
+        localStorage.setItem(LEVERAGE_STORAGE_KEY, JSON.stringify(newState));
+    };
 
-    useEffect(() => {
-        const base = leverageConfig.maxDrawdown[state.maxDrawdown] ?? leverageConfig.maxDrawdown[defaultState.maxDrawdown];
-        const shock = leverageConfig.shockCare[state.shockCare] ?? leverageConfig.shockCare[defaultState.shockCare];
-        const stock = leverageConfig.stockType[state.stockType] ?? leverageConfig.stockType[defaultState.stockType];
-        const drawdown = leverageConfig.drawdown[state.drawdown] ?? leverageConfig.drawdown[defaultState.drawdown];
+    // 計算ロジック（派生値は state から都度計算して useMemo でメモ化）
+    const { result, detailText } = useMemo(() => {
+        const base = Number(pulldownState.maxDrawdown);
+        const shock = Number(pulldownState.shockCare);
+        const stock = Number(pulldownState.stockType);
+        const drawdown = Number(pulldownState.drawdown);
 
         const res = base * shock * stock * drawdown;
         const rounded = Math.round(res * 100) / 100;
 
-        setResult(rounded.toFixed(2));
-        setDetailText(`ベース ${base.toFixed(2)} × ${shock.toFixed(2)} × ${stock.toFixed(2)} × ${drawdown.toFixed(2)} = ${rounded.toFixed(2)}倍`);
-
-        localStorage.setItem(LEVERAGE_STORAGE_KEY, JSON.stringify(state));
-    }, [state, leverageConfig, defaultState]);
-
-    const handleChange = (key, value) => {
-        setState((prev) => ({ ...prev, [key]: value }));
-    };
+        return {
+            result: rounded.toFixed(2),
+            detailText: `ベース ${base.toFixed(2)} × ${shock.toFixed(2)} × ${stock.toFixed(2)} × ${drawdown.toFixed(2)} = ${rounded.toFixed(2)}倍`,
+        };
+    }, [pulldownState.maxDrawdown, pulldownState.shockCare, pulldownState.stockType, pulldownState.drawdown]);
 
     return html`
         <div id="calcToolsContainer">
@@ -60,35 +81,26 @@ export function LeverageCalculator({ netTotalMarketCap, totalMarketCap }) {
                 <div class="leverageCalcControls">
                     <label class="leverageCalcControl" for="maxDrawdownSelect">
                         <span class="question">最大DDをどこまで許容するのか</span>
-                        <select id="maxDrawdownSelect" value=${state.maxDrawdown} onChange=${(e) => handleChange('maxDrawdown', e.target.value)}>
-                            <option value="dd30">最大DD▲30％まで許容（ベース 0.55）</option>
-                            <option value="dd50">最大DD▲50％まで許容（ベース 0.90）</option>
-                            <option value="dd66">最大DD▲66％まで許容（ベース 1.20）</option>
+                        <select id="maxDrawdownSelect" value=${pulldownState.maxDrawdown} onChange=${(e) => handleChange('maxDrawdown', e.target.value)}>
+                            ${pulldownData.maxDrawdown.map((opt) => html`<option value=${opt.value}>${opt.text}</option>`)}
                         </select>
                     </label>
                     <label class="leverageCalcControl" for="shockSelect">
                         <span class="question">最高値更新中にリーマン級ショックをケアするか</span>
-                        <select id="shockSelect" value=${state.shockCare} onChange=${(e) => handleChange('shockCare', e.target.value)}>
-                            <option value="care">ケアする（×1）</option>
-                            <option value="ignore">ケアしない（×55/33）</option>
+                        <select id="shockSelect" value=${pulldownState.shockCare} onChange=${(e) => handleChange('shockCare', e.target.value)}>
+                            ${pulldownData.shockCare.map((opt) => html`<option value=${opt.value}>${opt.text}</option>`)}
                         </select>
                     </label>
                     <label class="leverageCalcControl" for="stockTypeSelect">
                         <span class="question">保有している銘柄は指数・大型株・小型株のどれに近いか</span>
-                        <select id="stockTypeSelect" value=${state.stockType} onChange=${(e) => handleChange('stockType', e.target.value)}>
-                            <option value="index">指数（×1）</option>
-                            <option value="largeMultiple">大型株複数（×0.80）</option>
-                            <option value="largeSingle">大型株単体（×0.66）</option>
-                            <option value="smallMultiple">小型株複数（×0.50）</option>
-                            <option value="smallSingle">小型株単体（×0.33）</option>
+                        <select id="stockTypeSelect" value=${pulldownState.stockType} onChange=${(e) => handleChange('stockType', e.target.value)}>
+                            ${pulldownData.stockType.map((opt) => html`<option value=${opt.value}>${opt.text}</option>`)}
                         </select>
                     </label>
                     <label class="leverageCalcControl" for="drawdownLeverageSelect">
                         <span class="question">下落時レバレッジでどれくらいレバレッジをかけるか</span>
-                        <select id="drawdownLeverageSelect" value=${state.drawdown} onChange=${(e) => handleChange('drawdown', e.target.value)}>
-                            <option value="recentHigh">直近4年の最高値（×1）</option>
-                            <option value="drop30">直近4年の最高値から30%下落（×1.5）</option>
-                            <option value="drop60">直近4年の最高値から60%下落（×2.0）</option>
+                        <select id="drawdownLeverageSelect" value=${pulldownState.drawdown} onChange=${(e) => handleChange('drawdown', e.target.value)}>
+                            ${pulldownData.drawdown.map((opt) => html`<option value=${opt.value}>${opt.text}</option>`)}
                         </select>
                     </label>
                 </div>
