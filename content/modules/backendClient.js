@@ -1,6 +1,7 @@
-/**
- * サービスワーカーとの通信を担当するモジュール
- */
+// =======================================
+// サービスワーカー通信モジュール
+// =======================================
+
 export class BackendClient {
     /**
      * 初回データを取得する（取引履歴など）
@@ -17,7 +18,6 @@ export class BackendClient {
      * @returns {Promise<Object>} 更新データ一式
      */
     static async fetchRefreshData() {
-        // GET_REFRESH_DATA は内部で JpyAccountFetch, ExternalResourceFetch などを呼び出してまとめて返す
         const response = await chrome.runtime.sendMessage({ type: 'GET_REFRESH_DATA' });
         if (!response.success) throw new Error(`GET_REFRESH_DATA Error: ${response.error}`);
         return response.data;

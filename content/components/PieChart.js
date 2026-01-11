@@ -9,8 +9,6 @@ export function PieChartComp({ data }) {
     const chartInstanceRef = useRef(null);
 
     useEffect(() => {
-        if (!canvasRef.current || !data) return;
-
         const ctx = canvasRef.current.getContext('2d');
         const labels = data.map((item) => item.name);
         const chartData = data.map((item) => item.marketCap);
@@ -85,11 +83,6 @@ export function PieChartComp({ data }) {
                 ],
             });
         }
-
-        return () => {
-            // クリーンアップは意図的に行わない（コンポーネントがアンマウントされない限り）
-            // 再描画時に destroy してもいいが、インスタンスを使い回す実装にしている
-        };
     }, [data]);
 
     return html`

@@ -1,3 +1,7 @@
+// =======================================
+// メインコンポーネント
+// =======================================
+
 import { html, useState, useEffect, useMemo } from '../utils/preact-adapter.js';
 import { BackendClient } from '../modules/backendClient.js';
 import { UIDataAdapter } from '../modules/uiDataAdapter.js';
@@ -34,8 +38,8 @@ export function App() {
             const day = now.getDay();
             const hours = now.getHours();
             const minutes = now.getMinutes();
-            if (day === 0 || day === 6) return;
-            if (hours < 9 || (hours === 15 && minutes > 30) || hours > 15) return;
+            if (day === 0 || day === 6) return; // 日曜・土曜
+            if (hours < 9 || (hours === 15 && minutes > 30) || hours > 15) return; // 時間外
 
             // 毎分0秒に更新
             if (now.getSeconds() === 0) updateData();
@@ -61,9 +65,9 @@ export function App() {
 
     // 取引履歴と当日約定をマージしてメモ化
     const mergedTradingLog = useMemo(() => {
-        if (!accountData || !accountData.todayExecutions) return tradingLog;
-        return UIDataAdapter.mergeTodayExecutions(tradingLog, accountData.todayExecutions);
-    }, [tradingLog, accountData]);
+        if (!accountData) return tradingLog;
+        return [...tradingLog, ...accountData.todayExecutions];
+    }, [accountData]);
 
     // レンダリング
     if (loading) return html`<h1>Now Loading ...</h1>`;

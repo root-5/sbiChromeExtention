@@ -1,6 +1,7 @@
-/**
- * UI表示用データ変換モジュール
- */
+// =======================================
+// UI表示用データ変換モジュール
+// =======================================
+
 export class UIDataAdapter {
     /**
      * ポートフォリオテーブル表示用のデータ生成
@@ -8,7 +9,6 @@ export class UIDataAdapter {
      * @returns {Object} Preactコンポーネントに渡すためのデータセット
      */
     static preparePortfolioData(accountViewData) {
-        if (!accountViewData) return null;
         const { netTotalMarketCap, totalMarketCap, leverageManagementData, tableTextData, totalProfit, buyingPower, graphData } = accountViewData;
 
         // レバレッジ管理用行データ
@@ -42,18 +42,5 @@ export class UIDataAdapter {
         };
 
         return { leverageRows, tableRows, summaryData, classData, graphData };
-    }
-
-    /**
-     * 取引履歴テーブル用のデータ生成（当日約定の追記処理含む）
-     * @param {Array} currentLog 現在表示中の取引履歴（キャッシュ）
-     * @param {Array} todayExecutions 当日約定データ
-     * @returns {Array} 結合された取引履歴リスト
-     */
-    static mergeTodayExecutions(currentLog, todayExecutions) {
-        if (!todayExecutions || todayExecutions.length === 0) return currentLog;
-        // 重複チェックなどは必要であれば行うが、ここでは単純結合
-        // 必要ならユニークIDでフィルタリング等を追加
-        return [...todayExecutions, ...currentLog];
     }
 }

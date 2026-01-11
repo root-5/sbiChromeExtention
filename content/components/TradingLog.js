@@ -5,8 +5,6 @@
 import { html } from '../utils/preact-adapter.js';
 
 export function TradingLogComp({ tradingLog }) {
-    if (!tradingLog || tradingLog.length === 0) return null;
-
     const cellPad = 'p-3 max-md:p-2.5 max-sm:p-2';
 
     return html`

@@ -5,8 +5,6 @@
 import { html } from '../utils/preact-adapter.js';
 
 export function PriceChangeComp({ priceChangePivot }) {
-    if (!priceChangePivot || priceChangePivot.length === 0) return null;
-
     // 日付リスト
     const dates = priceChangePivot.map((d) => d.date);
 
@@ -22,7 +20,7 @@ export function PriceChangeComp({ priceChangePivot }) {
         .sort((a, b) => a.code.localeCompare(b.code));
 
     // データマップ作成
-    const dataMap = new Map(); // key: "${code}_${date}", value: { ratio, quantity }
+    const dataMap = new Map();
     priceChangePivot.forEach((day) => {
         day.ratioAndQuantity.forEach((item) => {
             dataMap.set(`${item.code}_${day.date}`, item);
