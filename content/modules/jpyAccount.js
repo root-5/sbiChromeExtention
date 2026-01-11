@@ -12,7 +12,7 @@ class JpyAccount {
      */
     static async fetchInitialData() {
         const response = await chrome.runtime.sendMessage({ type: 'GET_INITIAL_DATA' });
-        if (!response.success) throw new Error(response.error);
+        if (!response.success) throw new Error(`GET_INITIAL_DATA: ${response.error}`);
         return response.data;
     }
 
@@ -21,7 +21,7 @@ class JpyAccount {
      */
     static async fetchRefreshData() {
         const response = await chrome.runtime.sendMessage({ type: 'GET_REFRESH_DATA' });
-        if (!response.success) throw new Error(response.error);
+        if (!response.success) throw new Error(`GET_REFRESH_DATA: ${response.error}`);
         return response.data;
     }
 
@@ -166,10 +166,7 @@ class JpyAccount {
      * @param {Array} formattedTradingLog 取引履歴データ（文字列整形済み）
      */
     static drawTradingLogTable(formattedTradingLog = []) {
-        // キャッシュ更新
         JpyAccount._tradingLogCache = formattedTradingLog;
-
-        // テーブル行をデータバインディング
         TemplateEngine.bindTableRows('jpyAccountTradingLogRow', formattedTradingLog);
     }
 
@@ -179,8 +176,6 @@ class JpyAccount {
      */
     static drawTodayExecutionToTradingLogTable(formattedTodayExecutions = []) {
         if (!formattedTodayExecutions?.length) return;
-
-        // 既存キャッシュの先頭に追加して描画
         TemplateEngine.bindTableRows('jpyAccountTradingLogRow', [...formattedTodayExecutions, ...JpyAccount._tradingLogCache]);
     }
 

@@ -24,7 +24,7 @@
             "js": [
                 "content/modules/templateEngine.js",
                 "content/modules/jpyAccount.js",
-                "content/modules/calcScript.js",
+                "content/modules/leverageCalculator.js",
                 "content/contentScript.js",
                 "libs/chart.min.js"
             ],

@@ -13,21 +13,15 @@ class ExternalResource {
      */
     static async fetchClosePriceData(stocks, daysAgo = 15) {
         const codes = [...new Set(stocks.map((stock) => stock.code))];
-        try {
-            // バックグラウンド側で終値データを取得
-            const response = await chrome.runtime.sendMessage({
-                type: 'FETCH_CLOSE_PRICE_DATA',
-                params: {
-                    codes: codes,
-                    daysAgo: daysAgo,
-                },
-            });
-            if (!response.success) throw new Error(response.error);
-            return response.data;
-        } catch (error) {
-            console.error('終値データの取得に失敗しました:', error);
-            throw error;
-        }
+        const response = await chrome.runtime.sendMessage({
+            type: 'FETCH_CLOSE_PRICE_DATA',
+            params: {
+                codes: codes,
+                daysAgo: daysAgo,
+            },
+        });
+        if (!response.success) throw new Error(`FETCH_CLOSE_PRICE_DATA: ${response.error}`);
+        return response.data;
     }
 
     /**
@@ -37,19 +31,13 @@ class ExternalResource {
      */
     static async fetchCurrentPrice(stocks) {
         const codes = [...new Set(stocks.map((stock) => stock.code))];
-        try {
-            // バックグラウンド側で終値データを取得
-            const response = await chrome.runtime.sendMessage({
-                type: 'FETCH_CURRENT_PRICE_DATA',
-                params: {
-                    codes: codes,
-                },
-            });
-            if (!response.success) throw new Error(response.error);
-            return response.data;
-        } catch (error) {
-            console.error('現在価格の取得に失敗しました:', error);
-            throw error;
-        }
+        const response = await chrome.runtime.sendMessage({
+            type: 'FETCH_CURRENT_PRICE_DATA',
+            params: {
+                codes: codes,
+            },
+        });
+        if (!response.success) throw new Error(`FETCH_CURRENT_PRICE_DATA: ${response.error}`);
+        return response.data;
     }
 }
