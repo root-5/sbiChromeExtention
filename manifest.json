@@ -23,7 +23,6 @@
             ],
             "js": [
                 "content/modules/templateEngine.js",
-                "content/modules/externalResource.js",
                 "content/modules/jpyAccount.js",
                 "content/modules/calcScript.js",
                 "content/contentScript.js",

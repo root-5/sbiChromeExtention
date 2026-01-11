@@ -1,6 +1,6 @@
 /**
  * ==============================================================
- * SBI証券のWebページに挿入され、データの取得やUI改善を行う
+ * SBI証券のWebページにテンプレートを挿入、データの取得やUI改善を行う
  * ==============================================================
  */
 
@@ -20,46 +20,41 @@ async function main() {
     const TEMPLATE = 'content/templates/portfolioPanel.html';
     await TemplateEngine.setTemplate(TARGET_ELE_ID, TEMPLATE);
 
-    // 初期描画
-    const { tradingLog } = await JpyAccount.extractAccountDataJustOnce();
-    const totaledTradingLog = JpyAccount.totalTradingLog(tradingLog);
-    JpyAccount.drawTradingLogTable(totaledTradingLog);
+    // 初期描画 (データ取得)
+    const { tradingLog } = await JpyAccount.fetchInitialData();
+    // 整形はSWで済み
+    JpyAccount.drawTradingLogTable(tradingLog);
     setupLeverageCalculator();
 
-    // 最初の更新（取引履歴を渡す）
-    await updateJpyAccount(totaledTradingLog);
+    // 最初の更新
+    await updateJpyAccount();
     TemplateEngine.updateTime('lastUpdateTime');
 
-    // 1秒ごとに定期実行するスケジューラーをセット（取引履歴を渡す）
-    const scheduler = setInterval(() => schedulerTask(totaledTradingLog), 1000);
+    // 1秒ごとに定期実行するスケジューラーをセット
+    const scheduler = setInterval(() => schedulerTask(), 1000);
     window.addEventListener('beforeunload', () => clearInterval(scheduler));
 }
 
 /**
  * 円建て口座データを取得して、グラフとテーブルを描画
- * @param {Array} totaledTradingLog 整形後取引履歴データ
  */
-async function updateJpyAccount(totaledTradingLog = []) {
-    // データ取得
-    const { buyingPower, cashBalance, stocks, todayExecution } = await JpyAccount.extractAccountDataPerMinute();
-    const jpyAccountTableData = JpyAccount.convertToTable({ cashBalance, stocks });
-    const currentPrices = await ExternalResource.fetchCurrentPrice(totaledTradingLog);
-    const closePriceData = await JpyAccount.ensureClosePriceCache(totaledTradingLog);
+async function updateJpyAccount() {
+    try {
+        const { accountViewData, todayExecutions, priceChangePivot } = await JpyAccount.fetchRefreshData();
 
-    // チャートデータ更新
-    jpyAccountChart = JpyAccount.drawCircleChart(jpyAccountTableData, jpyAccountChart);
-
-    // テーブル再描画
-    JpyAccount.drawPortfolioTable({ buyingPower, cashBalance, stocks }, jpyAccountTableData);
-    JpyAccount.drawTodayExecutionToTradingLogTable(todayExecution);
-    JpyAccount.drawPriceChangeTable(currentPrices, totaledTradingLog, closePriceData);
+        jpyAccountChart = JpyAccount.drawCircleChart(accountViewData.graphData, jpyAccountChart); // チャートデータ更新
+        JpyAccount.drawPortfolioTable(accountViewData); // テーブル再描画
+        JpyAccount.drawTodayExecutionToTradingLogTable(todayExecutions); // 当日約定追記
+        JpyAccount.drawPriceChangeTable(priceChangePivot); // 価格変動テーブル描画
+    } catch (e) {
+        console.error('Update Jpy Account Failed:', e);
+    }
 }
 
 /**
  * 時刻更新と円建て口座データの定期更新する関数
- * @param {Array} totaledTradingLog 整形後取引履歴データ
  */
-function schedulerTask(totaledTradingLog) {
+function schedulerTask() {
     const now = new Date();
 
     // 時刻表示を更新
@@ -74,7 +69,7 @@ function schedulerTask(totaledTradingLog) {
 
     // 毎分0秒に口座情報と最終更新時刻を更新
     if (now.getSeconds() === 0) {
-        updateJpyAccount(totaledTradingLog);
+        updateJpyAccount();
         TemplateEngine.updateTime('lastUpdateTime');
     }
 }
