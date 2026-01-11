@@ -93,7 +93,7 @@ export function PieChartComp({ data }) {
     }, [data]);
 
     return html`
-        <div id="jpyAccountPieChartContainer">
+        <div id="jpyAccountPieChartContainer" class="p-5 w-[35%] max-w-[23.4375em] aspect-square max-[30em]:p-[0.9375em]">
             <canvas ref=${canvasRef} id="jpyAccountPieChartCanvas"></canvas>
         </div>
     `;

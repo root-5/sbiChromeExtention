@@ -23,6 +23,7 @@
             ],
             "js": [
                 "libs/chart.min.js",
+                "libs/tailwindcss.js",
                 "init.js" // ローダー経由でコンテントスクリプトを読み込むことで import/export 文を使用可能にする
             ],
             "css": [
