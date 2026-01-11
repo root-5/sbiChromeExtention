@@ -7,6 +7,103 @@ import { html, useState, useMemo } from '../utils/preact-adapter.js';
 export function LeverageCalculatorComp({}) {
     const LEVERAGE_STORAGE_KEY = 'sbiExtLeverageCalculator';
     // localStorage.removeItem(LEVERAGE_STORAGE_KEY); // デバッグ用：設定リセット
+    const leverageStyles = useMemo(
+        () => `
+        #calcToolsContainer {
+            margin-top: 1.875em;
+        }
+
+        #leverageCalculator {
+            margin-top: 1em;
+            padding: 0.875em 1em;
+            border: 0.0625em dashed #0066cc;
+            border-radius: 0.625em;
+            background: #f5f9ff;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75em;
+        }
+
+        #leverageCalculator h3 {
+            margin: 0;
+            font-size: 1em;
+            color: #004499;
+        }
+
+        #leverageCalculator .leverageCalcControls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.625em 0.875em;
+        }
+
+        @media (max-width: 48em) {
+            #leverageCalculator .leverageCalcControls {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        #leverageCalculator .leverageCalcControl {
+            display: flex;
+            flex-direction: column;
+            gap: 0.375em;
+            padding: 0.625em 0.75em;
+            background: #ffffff;
+            border: 0.0625em solid #d6e6f7;
+            border-radius: 0.5em;
+        }
+
+        #leverageCalculator .leverageCalcControl .question {
+            font-weight: 600;
+            color: #003366;
+            line-height: 1.4;
+        }
+
+        #leverageCalculator .leverageCalcControl select {
+            padding: 0.5em;
+            border: 0.0625em solid #b6c6d6;
+            border-radius: 0.375em;
+            background: #f8fbff;
+            font-size: 0.95em;
+            color: #333333;
+        }
+
+        #leverageCalculator .leverageCalcResult {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: baseline;
+            gap: 0.5em;
+            padding: 0.75em 0.875em;
+            background: linear-gradient(90deg, #e8f2ff, #f9fcff);
+            border: 0.0625em solid #c5daf4;
+            border-radius: 0.5em;
+        }
+
+        #leverageCalculator .leverageCalcResult .resultLabel {
+            font-weight: 700;
+            color: #004499;
+        }
+
+        #leverageCalculator .leverageCalcResult .resultValue {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #0066cc;
+            text-align: right;
+        }
+
+        #leverageCalculator .leverageCalcResult .resultUnit {
+            font-weight: 600;
+            color: #004499;
+        }
+
+        #leverageCalculator .leverageCalcResult .resultDetail {
+            grid-column: 1 / -1;
+            font-size: 0.9em;
+            color: #555555;
+            line-height: 1.4;
+        }
+    `,
+        []
+    );
 
     // レバレッジ計算用設定値
     const pulldownData = {
@@ -74,6 +171,9 @@ export function LeverageCalculatorComp({}) {
     }, [pulldownState.maxDrawdown, pulldownState.shockCare, pulldownState.stockType, pulldownState.drawdown]);
 
     return html`
+        <style>
+            ${leverageStyles}
+        </style>
         <div id="calcToolsContainer">
             <h2>計算ツール</h2>
             <div id="leverageCalculator">

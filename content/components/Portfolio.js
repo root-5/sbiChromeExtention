@@ -2,14 +2,76 @@
 // ポートフォリオコンポーネント
 // =======================================
 
-import { html } from '../utils/preact-adapter.js';
+import { html, useMemo } from '../utils/preact-adapter.js';
 
 export function PortfolioComp({ accountViewData }) {
     const { summaryData, leverageRows, tableRows, classData } = accountViewData;
     const { netTotalMarketCap, totalMarketCap, leverage, buyingPower, totalProfit } = summaryData;
     const { totalProfit: totalProfitClass } = classData;
+    const portfolioStyles = useMemo(
+        () => `
+        #jpyAccountSummaryContainer,
+        #jpyAccountTableContainer {
+            padding-top: 1.25em;
+        }
+
+        @media (max-width: 30em) {
+            #jpyAccountSummaryContainer,
+            #jpyAccountTableContainer {
+                padding: 0.625em;
+                overflow-x: auto;
+            }
+        }
+
+        #jpyAccountSummaryContainer {
+            display: flex;
+            gap: 2em;
+        }
+
+        #jpyAccountSummaryContainer table {
+            width: fit-content;
+        }
+
+        #jpyAccountTableContainer h2 {
+            margin-bottom: 0.625em;
+        }
+
+        #jpyAccountTableContainer table {
+            width: 100%;
+        }
+
+        #jpyAccountTableContainer table td.code {
+            color: #0066cc;
+            text-align: center;
+        }
+
+        #jpyAccountTableContainer table td.quantity,
+        #jpyAccountTableContainer table td.buyPrice,
+        #jpyAccountTableContainer table td.currentPrice,
+        #jpyAccountTableContainer table td.dayChange,
+        #jpyAccountTableContainer table td.profitAndLoss,
+        #jpyAccountTableContainer table td.marketCap,
+        #jpyAccountTableContainer table td.profit,
+        #jpyAccountTableContainer table td.amount {
+            text-align: right;
+        }
+
+        #jpyAccountTableContainer table td.dayChange,
+        #jpyAccountTableContainer table td.profitAndLoss {
+            font-weight: 600;
+        }
+
+        #jpyAccountTableContainer table td .percent {
+            font-size: 0.7em;
+        }
+    `,
+        []
+    );
 
     return html`
+        <style>
+            ${portfolioStyles}
+        </style>
         <div id="jpyAccountSummaryContainer">
             <div>
                 <h2>サマリー</h2>
