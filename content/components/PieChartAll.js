@@ -1,5 +1,5 @@
 // =======================================
-// 全通貨合算円グラフコンポーネント
+// 外貨建合算円グラフコンポーネント
 // =======================================
 
 import { html, useEffect, useRef } from '../utils/preact-adapter.js';
@@ -9,19 +9,16 @@ export function PieChartAllComp({ data }) {
     const chartInstanceRef = useRef(null);
 
     useEffect(() => {
-        if (!data || data.length === 0) return;
-
         const ctx = canvasRef.current.getContext('2d');
         const labels = data.map((item) => item.name);
         const chartData = data.map((item) => item.marketCap);
 
-        // 青系統のカラーパレット生成（少し色味を変えて緑系も混ぜるなど区別してもよいが、一旦既存踏襲）
+        // 緑系統のカラーパレット生成
         const totalColors = Math.max(data.length, 10);
         const colors = [];
         for (let i = 0; i < totalColors; i++) {
-            // 全通貨版は少し紫寄りにしてみる
-            const lightness = 30 + (130 / (totalColors - 1)) * i;
-            colors.push(`hsl(260, 50%, ${lightness}%)`);
+            const lightness = 20 + (135 / (totalColors - 1)) * i;
+            colors.push(`hsl(120, 45%, ${lightness}%)`);
         }
 
         if (chartInstanceRef.current) {
@@ -36,7 +33,7 @@ export function PieChartAllComp({ data }) {
                     labels: labels,
                     datasets: [
                         {
-                            label: '評価額(円)',
+                            label: '時価総額',
                             data: chartData,
                             backgroundColor: colors,
                             borderColor: '#ffffff',
@@ -53,23 +50,44 @@ export function PieChartAllComp({ data }) {
                         tooltip: { enabled: false },
                     },
                 },
+                plugins: [
+                    {
+                        id: 'customLabels',
+                        afterDatasetsDraw: (chart) => {
+                            const ctx = chart.ctx;
+                            chart.data.datasets.forEach((dataset, datasetIndex) => {
+                                const meta = chart.getDatasetMeta(datasetIndex);
+                                if (meta.hidden) return;
+
+                                meta.data.forEach((element, i) => {
+                                    const value = dataset.data[i];
+                                    const total = dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+
+                                    if (percentage < 5) return;
+
+                                    const position = element.tooltipPosition();
+                                    ctx.fillStyle = '#ffffff';
+                                    ctx.font = "12px 'Helvetica'";
+                                    ctx.textAlign = 'center';
+                                    ctx.textBaseline = 'middle';
+
+                                    const lineHeight = 16;
+                                    const label = chart.data.labels[i].split(' ')[0];
+                                    ctx.fillText(`${label} ${percentage}%`, position.x, position.y);
+                                    ctx.fillText(`¥${value.toLocaleString()}`, position.x, position.y + lineHeight);
+                                });
+                            });
+                        },
+                    },
+                ],
             });
         }
-
-        return () => {
-            if (chartInstanceRef.current) {
-                chartInstanceRef.current.destroy();
-                chartInstanceRef.current = null;
-            }
-        };
     }, [data]);
 
     return html`
-        <div class="w-[450px] h-[300px] shrink-0 relative flex justify-center items-center">
+        <div class="p-5 w-1/3 max-w-sm aspect-square max-sm:p-4">
             <canvas ref=${canvasRef}></canvas>
-            <div class="absolute pointer-events-none flex flex-col items-center justify-center text-gray-500">
-                <span class="text-xs">Total Assets (All)</span>
-            </div>
         </div>
     `;
 }

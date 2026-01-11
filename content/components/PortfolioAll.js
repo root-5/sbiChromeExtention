@@ -1,5 +1,5 @@
 // =======================================
-// 全通貨合算ポートフォリオコンポーネント
+// 外貨建合算ポートフォリオコンポーネント
 // =======================================
 
 import { html } from '../utils/preact-adapter.js';
@@ -21,9 +21,9 @@ export function PortfolioAllComp({ accountViewData }) {
         <div class="pt-5 max-sm:p-2.5 max-sm:overflow-x-auto flex flex-col gap-6">
             <div class="flex justify-start gap-8">
                 <div>
-                    <h2 class="mb-1.5 text-purple-800 text-lg font-semibold">サマリー (全通貨合算)</h2>
+                    <h2 class="mb-1.5 text-green-800 text-lg font-semibold">サマリー (外貨建合算)</h2>
                     <table class="border-collapse bg-white shadow-md rounded-md overflow-hidden align-middle w-fit">
-                        <thead class="text-white bg-gradient-to-br from-purple-800 to-purple-800 border-b-2 border-purple-900 whitespace-nowrap">
+                        <thead class="text-white bg-gradient-to-br from-green-800 to-green-800 border-b-2 border-green-900 whitespace-nowrap">
                             <tr>
                                 <th class="${cellPad}">純資産</th>
                                 <th class="${cellPad}">総資産</th>
@@ -44,10 +44,10 @@ export function PortfolioAllComp({ accountViewData }) {
             </div>
 
             <div>
-                <h2 class="mb-1.5 text-purple-800 text-lg font-semibold">ポートフォリオ一覧</h2>
+                <h2 class="mb-1.5 text-green-800 text-lg font-semibold">ポートフォリオ一覧</h2>
                 <div class="overflow-x-auto shadow-md rounded-md">
                     <table class="w-full border-collapse bg-white text-sm whitespace-nowrap">
-                        <thead class="text-white bg-gradient-to-br from-purple-800 to-purple-800 border-b-2 border-purple-900">
+                        <thead class="text-white bg-gradient-to-br from-green-800 to-green-800 border-b-2 border-green-900">
                             <tr>
                                 <th class="${cellPad} text-left">銘柄</th>
                                 <th class="${cellPad} text-right">現在値(円)</th>
@@ -85,6 +85,7 @@ export function PortfolioAllComp({ accountViewData }) {
                         </tbody>
                     </table>
                 </div>
+                <p class="mt-2 text-xs text-gray-500">※ iDeCo、銀行預金、ビットコインは含まれていません</p>
             </div>
         </div>
     `;

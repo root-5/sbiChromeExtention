@@ -14,7 +14,7 @@ export function PieChartComp({ data }) {
         const chartData = data.map((item) => item.marketCap);
 
         // 青系統のカラーパレット生成
-        const totalColors = 10;
+        const totalColors = Math.max(data.length, 10);
         const colors = [];
         for (let i = 0; i < totalColors; i++) {
             const lightness = 20 + (135 / (totalColors - 1)) * i;

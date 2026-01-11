@@ -1,9 +1,9 @@
 /**
- * 外貨建て口座情報関連のリソースリクエストを担当するモジュール
+ * 外貨建口座情報関連のリソースリクエストを担当するモジュール
  */
 export class UsdAccountFetch {
     /**
-     * 外貨建て口座APIを取得
+     * 外貨建口座APIを取得
      * @returns {Promise<Object>} APIレスポンスのJSONオブジェクト
      */
     static async fetchAccountAPI() {
@@ -20,7 +20,7 @@ export class UsdAccountFetch {
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             return await response.json();
         } catch (error) {
-            console.error('外貨建て口座API取得エラー:', error);
+            console.error('外貨建口座API取得エラー:', error);
             throw error;
         }
     }

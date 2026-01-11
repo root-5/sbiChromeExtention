@@ -1,11 +1,11 @@
 /**
- * 外貨建て口座情報関連の変換処理を担当するモジュール
+ * 外貨建口座情報関連の変換処理を担当するモジュール
  */
 export class UsdAccountParse {
     /**
-     * 外貨建て口座JSONの解析処理
-     * @param {Object} json 外貨建て口座のJSONデータ
-     * @returns {Promise<{stocks: Array}>} 外貨建て口座データ
+     * 外貨建口座JSONの解析処理
+     * @param {Object} json 外貨建口座のJSONデータ
+     * @returns {Promise<{stocks: Array}>} 外貨建口座データ
      * @example
      * {
      *   stocks: [{code: 'AAPL', name: 'Apple Inc.', quantity: 10, ...}, ...]
@@ -74,7 +74,7 @@ export class UsdAccountParse {
 
             return { stocks, totalUsdDepositAsJpy };
         } catch (error) {
-            console.error('外貨建て口座JSONパースエラー:', error);
+            console.error('外貨建口座JSONパースエラー:', error);
             // エラー時は空データを返して処理を止めない
             return { stocks: [], totalUsdDepositAsJpy: 0 };
         }

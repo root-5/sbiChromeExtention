@@ -81,7 +81,7 @@ export function PriceChangeComp({ priceChangePivot }) {
                     </tbody>
                 </table>
             </div>
-            <p>※ 変化率は基本的に「該当日終値/現在価格」ですが、売買があった日は「売買価格/現在価格」で計算</p>
+            <p class="mt-2 text-xs text-gray-500">※ 変化率は基本的に「該当日終値/現在価格」ですが、売買があった日は「売買価格/現在価格」で計算</p>
         </div>
     `;
 }
