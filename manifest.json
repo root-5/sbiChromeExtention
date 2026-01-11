@@ -22,11 +22,8 @@
                 "https://site3.sbisec.co.jp/ETGate/?_ControlID=WPLETpfR001Control&_PageID=DefaultPID&_ActionID=DefaultAID&_DataStoreID=DSWPLETpfR001Control&OutSide=on&getFlg=on&_scpr=intpr=hn_trade*"
             ],
             "js": [
-                "content/modules/templateEngine.js",
-                "content/modules/jpyAccount.js",
-                "content/modules/leverageCalculator.js",
-                "content/contentScript.js",
-                "libs/chart.min.js"
+                "libs/chart.min.js",
+                "init.js" // ローダー経由でコンテントスクリプトを読み込むことで import/export 文を使用可能にする
             ],
             "css": [
                 "content/contentStyles.css"
@@ -46,7 +43,9 @@
         {
             "resources": [
                 "content/templates/*.html",
-                "env.json"
+                "env.json",
+                "content/contentScript.js",
+                "content/modules/*.js"
             ],
             "matches": [
                 "https://site3.sbisec.co.jp/*"
