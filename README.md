@@ -41,6 +41,7 @@ sbiChromeExtention/
 ### ポートフォリオデータ取得
 
 - SBI 証券のポートフォリオページから総評価額、評価損益、保有銘柄を自動抽出
+- 円建口座に加え、外貨建口座情報の取得と合算表示 (円グラフ、サマリー) に対応
 - `content/contentScript.js` で実装
 - 一部機能は個人の株式情報サーバー [InvestSupporter](https://github.com/root-5/InvestSupporter) を利用
 
@@ -71,7 +72,7 @@ sbiChromeExtention/
 - [x] SBI 証券データ抽出の実装
 - [x] アイコンの適用
 - [x] 取引履歴の取得・表示
-- [ ] 外貨建て口座対応
+- [x] 外貨建口座対応
 - [ ] データエクスポート機能
 - [ ] バックエンドへデータ送信、記録
 

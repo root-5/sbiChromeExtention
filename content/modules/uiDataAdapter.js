@@ -43,4 +43,72 @@ export class UIDataAdapter {
 
         return { leverageRows, tableRows, summaryData, classData, graphData };
     }
+
+    /**
+     * 外貨建合算ポートフォリオ表示用のデータ生成
+     * @param {Object} accountData JPY口座データ (DataRefreshResponse)
+     * @param {Object} usdAccountData USD口座データ
+     * @returns {Object} Preactコンポーネントに渡すためのデータセット
+     */
+    static prepareAllCurrencyPortfolioData(accountData, usdAccountData) {
+        if (!accountData || !usdAccountData) return null;
+
+        // JPY側数値パース (カンマと¥記号を除去して数値化)
+        const parseNum = (str) => (typeof str === 'string' ? parseFloat(str.replace(/[¥,]/g, '')) : str || 0);
+
+        const viewData = accountData.accountViewData;
+        const jpyNetTotal = parseNum(viewData.netTotalMarketCap);
+        const jpyTotal = parseNum(viewData.totalMarketCap);
+        const jpyBuyingPower = parseNum(viewData.buyingPower);
+        const jpyStocks = viewData.tableTextData || [];
+
+        // USDデータの集計
+        const usdStocks = usdAccountData.stocks || [];
+        const usdTotalStockVal = usdStocks.reduce((sum, s) => sum + s.marketCap, 0);
+        const usdDeposit = usdAccountData.totalUsdDepositAsJpy || 0;
+        const usdNetAsset = usdTotalStockVal + usdDeposit; // USD純資産
+
+        // 合算計算
+        const marginOpenInterest = jpyTotal - jpyNetTotal;
+        const newNetTotal = jpyNetTotal + usdNetAsset; // 新純資産 = JPY純資産 + USD純資産
+        const newTotal = newNetTotal + marginOpenInterest; // 新総資産 = 新純資産 + 信用建玉
+        const newBuyingPower = jpyBuyingPower + usdDeposit;
+        const newLeverage = newNetTotal ? (newTotal / newNetTotal).toFixed(2) : '0.00';
+
+        // 株式リスト結合＆ソート（評価額降順）
+        const formattedJpyStocks = jpyStocks
+            .map((s) => ({
+                name: s.name,
+                code: s.code,
+                quantity: parseNum(s.quantityText || s.quantity),
+                price: parseNum(s.currentPriceText || s.currentPrice || s.price),
+                marketCap: parseNum(s.marketCapText || s.marketCap),
+                profitLoss: parseNum(s.profitLossText || s.profitAndLoss),
+                profitLossRate: 0,
+                depositType: '円建',
+                currencyType: '円建',
+            }))
+            .map((s) => {
+                const cost = s.marketCap - s.profitLoss;
+                s.profitLossRate = cost ? (s.profitLoss / cost) * 100 : 0;
+                return s;
+            });
+
+        // 円建と外貨建の銘柄を結合し、評価額降順でソート
+        const tableRows = [...formattedJpyStocks, ...usdStocks].sort((a, b) => b.marketCap - a.marketCap);
+
+        // グラフデータ
+        const graphData = tableRows.map((s) => ({ name: s.name, marketCap: s.marketCap }));
+
+        return {
+            summaryData: {
+                netTotalMarketCap: Math.floor(newNetTotal).toLocaleString(),
+                totalMarketCap: Math.floor(newTotal).toLocaleString(),
+                leverage: newLeverage,
+                buyingPower: Math.floor(newBuyingPower).toLocaleString(),
+            },
+            tableRows: tableRows,
+            graphData: graphData,
+        };
+    }
 }

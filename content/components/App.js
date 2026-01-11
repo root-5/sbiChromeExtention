@@ -6,7 +6,9 @@ import { html, useState, useEffect, useMemo } from '../utils/preact-adapter.js';
 import { BackendClient } from '../modules/backendClient.js';
 import { UIDataAdapter } from '../modules/uiDataAdapter.js';
 import { PieChartComp } from './PieChart.js';
+import { PieChartAllComp } from './PieChartAll.js';
 import { PortfolioComp } from './Portfolio.js';
+import { PortfolioAllComp } from './PortfolioAll.js';
 import { LeverageCalculatorComp } from './LeverageCalculator.js';
 import { TradingLogComp } from './TradingLog.js';
 import { PriceChangeComp } from './PriceChange.js';
@@ -16,13 +18,16 @@ export function App() {
     const [lastUpdateTime, setLastUpdateTime] = useState('--:--:--');
     const [tradingLog, setTradingLog] = useState([]);
     const [accountData, setAccountData] = useState(null); // { accountViewData, todayExecutions, priceChangePivot }
+    const [usdAccountData, setUsdAccountData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isAllCurrencyMode, setIsAllCurrencyMode] = useState(false);
 
     useEffect(() => {
         // 初期データ取得
         const fetchInit = async () => {
             const initData = await BackendClient.fetchInitialData();
-            setTradingLog(initData.tradingLog || []);
+            setTradingLog(initData.tradingLog);
+            setUsdAccountData(initData.usdAccountData);
             await updateData();
             setLoading(false);
         };
@@ -57,11 +62,16 @@ export function App() {
         setLastUpdateTime(new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     };
 
-    // UI データ準備
+    // UI データ準備 (JPY)
     const uiData = useMemo(() => {
         if (!accountData) return null;
         return UIDataAdapter.preparePortfolioData(accountData.accountViewData);
     }, [accountData]);
+
+    // UI データ準備 (外貨建合算)
+    const allCurrencyUiData = useMemo(() => {
+        return UIDataAdapter.prepareAllCurrencyPortfolioData(accountData, usdAccountData);
+    }, [accountData, usdAccountData]);
 
     // 取引履歴と当日約定をマージしてメモ化
     const mergedTradingLog = useMemo(() => {
@@ -75,28 +85,46 @@ export function App() {
         <div
             class="relative w-[90%] max-w-7xl mx-auto my-5 p-8 bg-white text-gray-800 text-left font-['Helvetica'] text-sm align-middle border-2 border-blue-800 rounded-xl shadow-lg overflow-hidden max-lg:text-sm max-lg:m-5 max-sm:text-xs"
         >
-            <div class="flex flex-nowrap justify-between gap-8">
-                <h1 class="text-xl font-bold">日本円建て口座ポートフォリオ</h1>
+            <div class="flex flex-nowrap justify-between gap-8 h-8 items-center mb-4">
+                <div class="flex items-center gap-4">
+                    <h1 class="text-xl font-bold">${isAllCurrencyMode ? '外貨建合算ポートフォリオ' : '日本円建口座ポートフォリオ'}</h1>
+                    <button
+                        onClick=${() => setIsAllCurrencyMode(!isAllCurrencyMode)}
+                        class="px-3 py-1 text-white rounded hover:opacity-80 transition text-xs ${isAllCurrencyMode ? 'bg-green-700' : 'bg-blue-700'}"
+                    >
+                        ${isAllCurrencyMode ? '円建のみ表示へ' : '外貨建合算表示へ'}
+                    </button>
+                    ${!usdAccountData && !loading ? html`<span class="text-xs text-red-500">(外貨データ未取得)</span>` : ''}
+                </div>
                 <div class="flex items-center justify-end gap-3">
                     <span>現在時刻:</span>
-                    <span class="text-blue-800">${currentTime}</span>
+                    <span>${currentTime}</span>
                     <span>|</span>
                     <span>最終更新:</span>
-                    <span class="text-blue-800">${lastUpdateTime}</span>
+                    <span>${lastUpdateTime}</span>
                 </div>
             </div>
 
-            <div class="flex flex-nowrap justify-between gap-8">
-                <${PieChartComp} data=${accountData.accountViewData.graphData} />
-                <div>${html`<${PortfolioComp} accountViewData=${uiData} />`}</div>
-            </div>
+            ${isAllCurrencyMode && allCurrencyUiData
+                ? html`
+                      <div class="flex flex-nowrap justify-between gap-8">
+                          <${PieChartAllComp} data=${allCurrencyUiData.graphData} />
+                          <div>${html`<${PortfolioAllComp} accountViewData=${allCurrencyUiData} />`}</div>
+                      </div>
+                  `
+                : html`
+                      <div class="flex flex-nowrap justify-between gap-8">
+                          <${PieChartComp} data=${accountData.accountViewData.graphData} />
+                          <div>${html`<${PortfolioComp} accountViewData=${uiData} />`}</div>
+                      </div>
 
-            <div class="flex flex-nowrap justify-between gap-8">
-                <${TradingLogComp} tradingLog=${mergedTradingLog} />
-                ${html`<${PriceChangeComp} priceChangePivot=${accountData.priceChangePivot} />`}
-            </div>
+                      <div class="flex flex-nowrap justify-between gap-8">
+                          <${TradingLogComp} tradingLog=${mergedTradingLog} />
+                          ${html`<${PriceChangeComp} priceChangePivot=${accountData.priceChangePivot} />`}
+                      </div>
 
-            ${html` <${LeverageCalculatorComp} netTotalMarketCap=${accountData.accountViewData.netTotalMarketCap} totalMarketCap=${accountData.accountViewData.totalMarketCap} /> `}
+                      ${html` <${LeverageCalculatorComp} netTotalMarketCap=${accountData.accountViewData.netTotalMarketCap} totalMarketCap=${accountData.accountViewData.totalMarketCap} /> `}
+                  `}
         </div>
     `;
 }

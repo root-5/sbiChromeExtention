@@ -1,5 +1,5 @@
 /**
- * 円建て口座情報関連の変換処理を担当するモジュール
+ * 円建口座情報関連の変換処理を担当するモジュール
  */
 export class JpyAccountParse {
     /**
@@ -372,8 +372,8 @@ export class JpyAccountParse {
     }
 
     /**
-     * 円建て口座データからテーブル用データに変換・集計
-     * @param {Object} data 円建て口座データ { cashBalance, stocks }
+     * 円建口座データからテーブル用データに変換・集計
+     * @param {Object} data 円建口座データ { cashBalance, stocks }
      * @returns {Object} 表示用データ
      * @example
      * {

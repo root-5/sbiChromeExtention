@@ -5,6 +5,8 @@
 
 import { JpyAccountFetch } from './modules/jpyAccountFetch.js';
 import { JpyAccountParse } from './modules/jpyAccountParse.js';
+import { UsdAccountFetch } from './modules/usdAccountFetch.js';
+import { UsdAccountParse } from './modules/usdAccountParse.js';
 import { ExternalResourceFetch } from './modules/externalResourceFetch.js';
 import { ExternalResourceParse } from './modules/externalResourceParse.js';
 
@@ -21,11 +23,18 @@ let cachedClosePriceData = null; // 終値データ
 // メッセージハンドラ定義
 const MESSAGE_HANDLERS = {
     /**
-     * 初回データ取得（取引履歴）
+     * 初回データ取得（取引履歴、および外貨建口座情報）
      */
     GET_INITIAL_DATA: async () => {
-        // 取引履歴CSV取得＆パース
-        const csv = await JpyAccountFetch.fetchTradingLogCsv();
+        // 並行して実行
+        const [csv, usdJson] = await Promise.all([
+            JpyAccountFetch.fetchTradingLogCsv(),
+            UsdAccountFetch.fetchAccountAPI().catch((e) => {
+                return {}; // 失敗時も空オブジェクトで続行
+            }),
+        ]);
+
+        // 取引履歴パース
         const rawData = JpyAccountParse.parseTradingLogCsv(csv);
         cachedTradingLogOriginal = rawData.tradingLog;
 
@@ -38,7 +47,14 @@ const MESSAGE_HANDLERS = {
             quantity: item.quantity.toLocaleString(),
             price: Math.floor(item.price).toLocaleString(),
         }));
-        return { tradingLog: formattedLog };
+
+        // 外貨口座パース
+        const usdData = await UsdAccountParse.parseAccountJSON(usdJson);
+
+        return {
+            tradingLog: formattedLog,
+            usdAccountData: usdData,
+        };
     },
 
     /**
