@@ -30,10 +30,10 @@ export function PriceChangeComp({ priceChangePivot }) {
     });
 
     return html`
-        <div id="PriceChangeContainer">
+        <div id="priceChangeTableContainer">
             <h2>株価変化率と売買数</h2>
             <div class="table-wrapper">
-                <table id="PriceChange">
+                <table id="priceChangeTable">
                     <thead>
                         <tr>
                             <th rowspan="2" class="code-header">コード</th>
