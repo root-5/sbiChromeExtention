@@ -4,7 +4,7 @@
  * HTMLテンプレートの読み込みとデータバインディングを担当
  * ==============================================================
  */
-class TemplateEngine {
+export class TemplateEngine {
     /**
      * テンプレートHTMLを読み込んで指定された親要素の後ろに挿入する関数
      * @param {string} targetElementID 挿入先の親要素のID

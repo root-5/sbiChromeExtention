@@ -1,11 +1,17 @@
 /**
  * ==============================================================
- * SBI証券のWebページに挿入され、データの取得やUI改善を行う
+ * SBI証券のWebページにテンプレートを挿入、データの取得やUI改善を行う
  * ==============================================================
  */
 
+import { BackendClient } from './modules/backendClient.js';
+import { UIDataAdapter } from './modules/uiDataAdapter.js';
+import { TemplateEngine } from './modules/templateEngine.js';
+import { DynamicView } from './modules/dynamicView.js';
+
 // グローバル変数
-let jpyAccountChart;
+let jpyAccountChart = null;
+let tradingLogCache = [];
 
 // ポートフォリオページが表示されたときにのみ実行
 const title = document.title;
@@ -15,66 +21,72 @@ if (title.includes('ポートフォリオ')) main();
  * メイン処理
  */
 async function main() {
-    // テンプレートを読み込み、指定要素にセット
-    const TARGET_ELE_ID = 'TIMEAREA01';
     const TEMPLATE = 'content/templates/portfolioPanel.html';
-    await TemplateEngine.setTemplate(TARGET_ELE_ID, TEMPLATE);
+    const TARGET_ELE_ID = 'TIMEAREA01';
 
     // 初期描画
-    const { tradingLog } = await JpyAccount.extractAccountDataJustOnce();
-    const totaledTradingLog = JpyAccount.totalTradingLog(tradingLog);
-    JpyAccount.drawTradingLogTable(totaledTradingLog);
-    setupLeverageCalculator();
+    await TemplateEngine.setTemplate(TARGET_ELE_ID, TEMPLATE);
 
-    // 最初の更新（取引履歴を渡す）
-    await updateJpyAccount(totaledTradingLog);
+    // 初回データ取得（取引履歴）
+    const { tradingLog } = await BackendClient.fetchInitialData();
+    tradingLogCache = tradingLog || [];
+
+    // 取引履歴テーブル描画
+    TemplateEngine.bindTableRows('jpyAccountTradingLogRow', tradingLogCache);
+
+    // レバレッジ計算機初期化
+    DynamicView.initializeLeverageCalculator();
+
+    // 最初のデータ更新
+    await updateJpyAccount();
     TemplateEngine.updateTime('lastUpdateTime');
 
-    // 1秒ごとに定期実行するスケジューラーをセット（取引履歴を渡す）
-    const scheduler = setInterval(() => schedulerTask(totaledTradingLog), 1000);
+    // 定期実行スケジューラー
+    const scheduler = setInterval(() => schedulerTask(), 1000);
     window.addEventListener('beforeunload', () => clearInterval(scheduler));
 }
 
 /**
  * 円建て口座データを取得して、グラフとテーブルを描画
- * @param {Array} totaledTradingLog 整形後取引履歴データ
  */
-async function updateJpyAccount(totaledTradingLog = []) {
+async function updateJpyAccount() {
     // データ取得
-    const { buyingPower, cashBalance, stocks, todayExecution } = await JpyAccount.extractAccountDataPerMinute();
-    const jpyAccountTableData = JpyAccount.convertToTable({ cashBalance, stocks });
-    const currentPrices = await ExternalResource.fetchCurrentPrice(totaledTradingLog);
-    const closePriceData = await JpyAccount.ensureClosePriceCache(totaledTradingLog);
+    const { accountViewData, todayExecutions, priceChangePivot } = await BackendClient.fetchRefreshData();
 
-    // チャートデータ更新
-    jpyAccountChart = JpyAccount.drawCircleChart(jpyAccountTableData, jpyAccountChart);
+    // UI用データ加工
+    const { leverageRows, tableRows, summaryData, classData } = UIDataAdapter.preparePortfolioData(accountViewData);
+    const mergedLog = UIDataAdapter.mergeTodayExecutions(tradingLogCache, todayExecutions);
 
-    // テーブル再描画
-    JpyAccount.drawPortfolioTable({ buyingPower, cashBalance, stocks }, jpyAccountTableData);
-    JpyAccount.drawTodayExecutionToTradingLogTable(todayExecution);
-    JpyAccount.drawPriceChangeTable(currentPrices, totaledTradingLog, closePriceData);
+    // テーブル描画
+    TemplateEngine.bindTableRows('leverageManagementRow', leverageRows);
+    TemplateEngine.bindTableRows('jpyAccountTableRow', tableRows);
+    TemplateEngine.bindData(summaryData);
+    TemplateEngine.bindClass(classData);
+    TemplateEngine.bindPivotTable(priceChangePivot);
+    TemplateEngine.bindTableRows('jpyAccountTradingLogRow', mergedLog);
+
+    // チャート描画
+    jpyAccountChart = DynamicView.drawCircleChart(accountViewData.graphData, jpyAccountChart);
 }
 
 /**
- * 時刻更新と円建て口座データの定期更新する関数
- * @param {Array} totaledTradingLog 整形後取引履歴データ
+ * 定期実行タスク
  */
-function schedulerTask(totaledTradingLog) {
-    const now = new Date();
-
-    // 時刻表示を更新
+function schedulerTask() {
+    // 現在時刻更新
     TemplateEngine.updateTime('currentTime');
 
     // 平日の場中（9:00〜15:30）以外は処理をスキップ
+    const now = new Date();
     const day = now.getDay();
     const hours = now.getHours();
     const minutes = now.getMinutes();
-    if (day === 0 || day === 6) return;
-    if (hours < 9 || (hours === 15 && minutes > 30) || hours > 15) return;
+    if (day === 0 || day === 6) return; // 土日
+    if (hours < 9 || (hours === 15 && minutes > 30) || hours > 15) return; // 時間外
 
-    // 毎分0秒に口座情報と最終更新時刻を更新
+    // 毎分0秒にデータ更新
     if (now.getSeconds() === 0) {
-        updateJpyAccount(totaledTradingLog);
+        updateJpyAccount();
         TemplateEngine.updateTime('lastUpdateTime');
     }
 }
