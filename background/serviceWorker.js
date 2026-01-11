@@ -3,19 +3,20 @@
  * バックグラウンドでの処理やメッセージのやり取りを担当
  */
 
-import { parseJpyAccountHTML, parseJpyPortfolioCSV, parseJpyTradingLogCsv, parseJpyTodayExecution } from './modules/jpyAccount.js';
-import { fetchClosePriceData, fetchCurrentPriceData } from './modules/externalResource.js';
-import { totalTradingLog, processAccountDataForTable, processTodayExecutions, calculatePriceChangePivot } from './modules/dataFormatter.js';
-
-// キャッシュ変数
-let cachedTradingLogOriginal = null; // CSVパース直後の生データ
-let cachedTotaledTradingLog = null; // 集計後の取引履歴データ
-let cachedClosePriceData = null; // 終値データ
+import { JpyAccountFetch } from './modules/jpyAccountFetch.js';
+import { JpyAccountParse } from './modules/jpyAccountParse.js';
+import { ExternalResourceFetch } from './modules/externalResourceFetch.js';
+import { ExternalResourceParse } from './modules/externalResourceParse.js';
 
 // インストール時の初期化処理
 chrome.runtime.onInstalled.addListener((details) => {
     console.log('SBI証券拡張機能がインストールされました:', details.reason);
 });
+
+// キャッシュ変数
+let cachedTradingLogOriginal = null; // CSVパース直後の生データ
+let cachedTotaledTradingLog = null; // 集計後の取引履歴データ
+let cachedClosePriceData = null; // 終値データ
 
 // メッセージハンドラ定義
 const MESSAGE_HANDLERS = {
@@ -24,11 +25,15 @@ const MESSAGE_HANDLERS = {
      */
     GET_INITIAL_DATA: async () => {
         try {
-            const rawData = await parseJpyTradingLogCsv(); // 取引履歴CSV取得＆パース
-            cachedTradingLogOriginal = rawData.tradingLog; // キャッシュ保存
-            cachedTotaledTradingLog = totalTradingLog(cachedTradingLogOriginal); // 集計
+            // 取引履歴CSV取得＆パース
+            const csv = await JpyAccountFetch.fetchTradingLogCsv();
+            const rawData = JpyAccountParse.parseTradingLogCsv(csv);
+            cachedTradingLogOriginal = rawData.tradingLog;
 
-            // 表示形式になるようフォーマット
+            // 集計
+            cachedTotaledTradingLog = JpyAccountParse.summarizeTradingLog(cachedTradingLogOriginal);
+
+            // 表示用にフォーマット
             const formattedLog = cachedTotaledTradingLog.map((item) => ({
                 ...item,
                 quantity: item.quantity.toLocaleString(),
@@ -47,51 +52,73 @@ const MESSAGE_HANDLERS = {
      */
     GET_REFRESH_DATA: async () => {
         try {
-            // 1. 各種データを並列取得
-            const [accountData, portfolioData, todayExecutionData] = await Promise.all([parseJpyAccountHTML(), parseJpyPortfolioCSV(), parseJpyTodayExecution()]);
+            // 1. 各種データ取得（並列実行）
+            const [accountHtml, portfolioCsv, todayExecutionHtml] = await Promise.all([
+                JpyAccountFetch.fetchAccountPage(),
+                JpyAccountFetch.fetchPortfolioCSV(),
+                JpyAccountFetch.fetchTodayExecutionPage(),
+            ]);
 
-            // 2. 口座データとポートフォリオのマージとテーブル用データ生成
-            // (HTML由来の buyingPower, cashBalance と CSV由来の portfolio を使用)
+            // 2. パース
+            const accountData = JpyAccountParse.parseAccountHTML(accountHtml);
+            const portfolioData = JpyAccountParse.parsePortfolioCSV(portfolioCsv);
+            const todayExecutionData = JpyAccountParse.parseTodayExecution(todayExecutionHtml);
+
+            // 3. 口座データとポートフォリオのマージとテーブル用データ生成
             const mergedData = {
                 buyingPower: accountData.buyingPower,
                 cashBalance: accountData.cashBalance,
                 stocks: portfolioData.portfolio,
             };
-            const accountViewData = processAccountDataForTable(mergedData);
+            const accountViewData = JpyAccountParse.formatAccountDataForTable(mergedData);
 
-            // 3. グラフ・テーブル内の銘柄コード抽出
-            const codes = accountViewData.graphData
-                .filter((d) => d.code) // 調整後現金などを除外
-                .map((d) => d.code);
+            // 4. グラフ・テーブル内の銘柄コード抽出
+            const codes = accountViewData.graphData.filter((d) => d.code).map((d) => d.code);
 
-            // 4. 現在値取得
-            const currentPrices = await fetchCurrentPriceData(codes);
+            // 5. 現在値取得
+            const currentPricePromises = codes.map(async (code) => {
+                const result = await ExternalResourceFetch.fetchCurrentPriceHTML(code);
+                return {
+                    code: code,
+                    price: ExternalResourceParse.parseCurrentPriceHTML(result.html),
+                };
+            });
+            const currentPrices = await Promise.all(currentPricePromises);
 
-            // 5. 終値取得
-            // 終値キャッシュがない場合は取得
+            // 6. 終値取得（キャッシュ制御）
+            if (!cachedTotaledTradingLog) {
+                const csv = await JpyAccountFetch.fetchTradingLogCsv();
+                const rawData = JpyAccountParse.parseTradingLogCsv(csv);
+                cachedTradingLogOriginal = rawData.tradingLog;
+                cachedTotaledTradingLog = JpyAccountParse.summarizeTradingLog(cachedTradingLogOriginal);
+            }
+
             if (!cachedClosePriceData) {
-                // 全取引履歴に含まれる銘柄コードを抽出
                 const stockCodes = [...new Set(cachedTotaledTradingLog.map((trade) => trade.code).filter(Boolean))];
-                // 銘柄数が0でなければ取得
                 if (stockCodes.length > 0) {
-                    const res = await fetchClosePriceData(stockCodes, 15);
-                    cachedClosePriceData = res && res.success !== false ? res.closePriceData : [];
+                    try {
+                        const csv = await ExternalResourceFetch.fetchClosePrices(stockCodes, 15);
+                        const data = ExternalResourceParse.parseClosePriceCSV(csv);
+                        cachedClosePriceData = data;
+                    } catch (e) {
+                        console.warn('終値取得に失敗', e);
+                        cachedClosePriceData = [];
+                    }
                 } else {
                     cachedClosePriceData = [];
                 }
             }
 
-            // 6. 当日約定データの処理
-            // processTodayExecutions は集計のみ返す。View側でフォーマットが必要なためここでフォーマットも行う
-            const processedTodayExecutions = processTodayExecutions(todayExecutionData.todayExecutions);
+            // 7. 当日約定データの処理
+            const processedTodayExecutions = JpyAccountParse.summarizeTodayExecutions(todayExecutionData.todayExecutions);
             const formattedTodayExecutions = processedTodayExecutions.map((item) => ({
                 ...item,
                 quantity: item.quantity.toLocaleString(),
                 price: Math.floor(item.price).toLocaleString(),
             }));
 
-            // 7. 価格変動ピボットテーブルの計算
-            const priceChangePivot = calculatePriceChangePivot(currentPrices, cachedTotaledTradingLog, cachedClosePriceData);
+            // 8. 価格変動ピボットテーブルの計算
+            const priceChangePivot = ExternalResourceParse.calculatePriceChangePivot(currentPrices, cachedTotaledTradingLog, cachedClosePriceData);
 
             // すべてまとめて返す
             return {
@@ -107,7 +134,7 @@ const MESSAGE_HANDLERS = {
 };
 
 // コンテンツスクリプトからのメッセージを受信、対応表に基づいて処理を実行
-chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const handler = MESSAGE_HANDLERS[message.type];
     if (typeof handler === 'function') {
         handler(message.params || {})
