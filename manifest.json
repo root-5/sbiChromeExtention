@@ -22,8 +22,9 @@
                 "https://site3.sbisec.co.jp/ETGate/?_ControlID=WPLETpfR001Control&_PageID=DefaultPID&_ActionID=DefaultAID&_DataStoreID=DSWPLETpfR001Control&OutSide=on&getFlg=on&_scpr=intpr=hn_trade*"
             ],
             "js": [
-                "libs/chart.min.js",
-                "init.js" // ローダー経由でコンテントスクリプトを読み込むことで import/export 文を使用可能にする
+                "libs/chart.min.js", // 先に読み込む必要がある
+                "libs/tailwindcss.js", // 先に読み込む必要がある
+                "scriptLoader.js" // ローダー経由でコンテントスクリプトを読み込むことで import/export 文を使用可能にする
             ],
             "css": [
                 "content/contentStyles.css"
@@ -42,10 +43,12 @@
     "web_accessible_resources": [ // ウェブページからアクセス可能なリソースを定義
         {
             "resources": [
-                "content/templates/*.html",
                 "env.json",
                 "content/contentScript.js",
-                "content/modules/*.js"
+                "content/components/*.js",
+                "content/utils/*.js",
+                "content/modules/*.js",
+                "libs/*.js"
             ],
             "matches": [
                 "https://site3.sbisec.co.jp/*"
