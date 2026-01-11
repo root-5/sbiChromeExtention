@@ -74,15 +74,15 @@ export function LeverageCalculatorComp({}) {
     }, [pulldownState.maxDrawdown, pulldownState.shockCare, pulldownState.stockType, pulldownState.drawdown]);
 
     return html`
-        <div id="calcToolsContainer" class="mt-[1.875em]">
-            <h2 class="mb-2.5 text-[#0066cc] text-[1.2em] font-semibold">計算ツール</h2>
-            <div id="leverageCalculator" class="mt-[1em] p-[0.875em_1em] border-[0.0625em] border-dashed border-[#0066cc] rounded-[0.625em] bg-[#f5f9ff] flex flex-col gap-[0.75em]">
-                <h3 class="m-0 text-[1em] text-[#004499] font-bold">レバレッジ簡易計算</h3>
-                <div class="grid grid-cols-2 gap-[0.625em_0.875em] max-[48em]:grid-cols-1">
-                    <label class="flex flex-col gap-[0.375em] p-[0.625em_0.75em] bg-white border-[0.0625em] border-[#d6e6f7] rounded-[0.5em]" for="maxDrawdownSelect">
-                        <span class="font-semibold text-[#003366] leading-[1.4]">最大DDをどこまで許容するのか</span>
+        <div id="calcToolsContainer" class="mt-8">
+            <h2 class="mb-2.5 text-blue-600 text-xl font-semibold">計算ツール</h2>
+            <div id="leverageCalculator" class="mt-4 p-4 border border-dashed border-blue-600 rounded-lg bg-blue-50 flex flex-col gap-3">
+                <h3 class="m-0 text-base text-blue-800 font-bold">レバレッジ簡易計算</h3>
+                <div class="grid grid-cols-2 gap-x-3.5 gap-y-2.5 max-md:grid-cols-1">
+                    <label class="flex flex-col gap-1.5 p-2.5 bg-white border border-blue-200 rounded-lg" for="maxDrawdownSelect">
+                        <span class="font-semibold text-blue-900 leading-snug">最大DDをどこまで許容するのか</span>
                         <select
-                            class="p-[0.5em] border-[0.0625em] border-[#b6c6d6] rounded-[0.375em] bg-[#f8fbff] text-[0.95em] text-[#333333]"
+                            class="p-2 border border-gray-300 rounded-md bg-slate-50 text-sm text-gray-800"
                             id="maxDrawdownSelect"
                             value=${pulldownState.maxDrawdown}
                             onChange=${(e) => handleChange('maxDrawdown', e.target.value)}
@@ -90,10 +90,10 @@ export function LeverageCalculatorComp({}) {
                             ${pulldownData.maxDrawdown.map((opt) => html`<option value=${opt.value}>${opt.text}</option>`)}
                         </select>
                     </label>
-                    <label class="flex flex-col gap-[0.375em] p-[0.625em_0.75em] bg-white border-[0.0625em] border-[#d6e6f7] rounded-[0.5em]" for="shockSelect">
-                        <span class="font-semibold text-[#003366] leading-[1.4]">最高値更新中にリーマン級ショックをケアするか</span>
+                    <label class="flex flex-col gap-1.5 p-2.5 bg-white border border-blue-200 rounded-lg" for="shockSelect">
+                        <span class="font-semibold text-blue-900 leading-snug">最高値更新中にリーマン級ショックをケアするか</span>
                         <select
-                            class="p-[0.5em] border-[0.0625em] border-[#b6c6d6] rounded-[0.375em] bg-[#f8fbff] text-[0.95em] text-[#333333]"
+                            class="p-2 border border-gray-300 rounded-md bg-slate-50 text-sm text-gray-800"
                             id="shockSelect"
                             value=${pulldownState.shockCare}
                             onChange=${(e) => handleChange('shockCare', e.target.value)}
@@ -101,10 +101,10 @@ export function LeverageCalculatorComp({}) {
                             ${pulldownData.shockCare.map((opt) => html`<option value=${opt.value}>${opt.text}</option>`)}
                         </select>
                     </label>
-                    <label class="flex flex-col gap-[0.375em] p-[0.625em_0.75em] bg-white border-[0.0625em] border-[#d6e6f7] rounded-[0.5em]" for="stockTypeSelect">
-                        <span class="font-semibold text-[#003366] leading-[1.4]">保有している銘柄は指数・大型株・小型株のどれに近いか</span>
+                    <label class="flex flex-col gap-1.5 p-2.5 bg-white border border-blue-200 rounded-lg" for="stockTypeSelect">
+                        <span class="font-semibold text-blue-900 leading-snug">保有している銘柄は指数・大型株・小型株のどれに近いか</span>
                         <select
-                            class="p-[0.5em] border-[0.0625em] border-[#b6c6d6] rounded-[0.375em] bg-[#f8fbff] text-[0.95em] text-[#333333]"
+                            class="p-2 border border-gray-300 rounded-md bg-slate-50 text-sm text-gray-800"
                             id="stockTypeSelect"
                             value=${pulldownState.stockType}
                             onChange=${(e) => handleChange('stockType', e.target.value)}
@@ -112,10 +112,10 @@ export function LeverageCalculatorComp({}) {
                             ${pulldownData.stockType.map((opt) => html`<option value=${opt.value}>${opt.text}</option>`)}
                         </select>
                     </label>
-                    <label class="flex flex-col gap-[0.375em] p-[0.625em_0.75em] bg-white border-[0.0625em] border-[#d6e6f7] rounded-[0.5em]" for="drawdownLeverageSelect">
-                        <span class="font-semibold text-[#003366] leading-[1.4]">下落時レバレッジでどれくらいレバレッジをかけるか</span>
+                    <label class="flex flex-col gap-1.5 p-2.5 bg-white border border-blue-200 rounded-lg" for="drawdownLeverageSelect">
+                        <span class="font-semibold text-blue-900 leading-snug">下落時レバレッジでどれくらいレバレッジをかけるか</span>
                         <select
-                            class="p-[0.5em] border-[0.0625em] border-[#b6c6d6] rounded-[0.375em] bg-[#f8fbff] text-[0.95em] text-[#333333]"
+                            class="p-2 border border-gray-300 rounded-md bg-slate-50 text-sm text-gray-800"
                             id="drawdownLeverageSelect"
                             value=${pulldownState.drawdown}
                             onChange=${(e) => handleChange('drawdown', e.target.value)}
@@ -124,13 +124,11 @@ export function LeverageCalculatorComp({}) {
                         </select>
                     </label>
                 </div>
-                <div
-                    class="grid grid-cols-[auto_1fr_auto] items-baseline gap-[0.5em] p-[0.75em_0.875em] bg-gradient-to-r from-[#e8f2ff] to-[#f9fcff] border-[0.0625em] solid border-[#c5daf4] rounded-[0.5em]"
-                >
-                    <div class="font-bold text-[#004499]">計算結果</div>
-                    <div class="text-[1.4em] font-bold text-[#0066cc] text-right" data-leverage-result>${result}</div>
-                    <div class="font-semibold text-[#004499]">倍</div>
-                    <div class="col-[1/-1] text-[0.9em] text-[#555555] leading-[1.4]" data-leverage-detail>${detailText}</div>
+                <div class="grid grid-cols-[auto_1fr_auto] items-baseline gap-2 p-3 bg-gradient-to-r from-blue-100 to-white border border-blue-200 rounded-lg">
+                    <div class="font-bold text-blue-800">計算結果</div>
+                    <div class="text-2xl font-bold text-blue-600 text-right" data-leverage-result>${result}</div>
+                    <div class="font-semibold text-blue-800">倍</div>
+                    <div class="col-span-full text-sm text-gray-600 leading-snug" data-leverage-detail>${detailText}</div>
                 </div>
             </div>
         </div>

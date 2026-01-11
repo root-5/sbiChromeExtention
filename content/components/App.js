@@ -69,16 +69,16 @@ export function App() {
     return html`
         <div
             id="jpyAccountPanel"
-            class="relative w-[90%] max-w-[75em] mx-auto my-5 p-8 bg-white text-[#333333] text-left font-['Helvetica'] font-normal text-[0.8125em] align-middle border-[0.125em] border-[#0066cc] rounded-[0.75em] shadow-[0_0.25em_1.25em_rgba(0,0,0,0.15)] overflow-hidden max-[60.5em]:text-[0.9em] max-[60.5em]:m-5 max-[30em]:text-[0.8em]"
+            class="relative w-[90%] max-w-7xl mx-auto my-5 p-8 bg-white text-gray-800 text-left font-sans font-normal text-sm align-middle border-2 border-blue-600 rounded-xl shadow-lg overflow-hidden max-lg:text-sm max-lg:m-5 max-sm:text-xs"
         >
             <div class="flex flex-nowrap justify-between gap-8 header-row">
-                <h1 class="text-[1.2em] font-bold">日本円建て口座ポートフォリオ</h1>
+                <h1 class="text-xl font-bold">日本円建て口座ポートフォリオ</h1>
                 <div id="jpyAccountClock" class="flex items-center justify-end gap-3">
                     <span class="clockLabel">現在時刻:</span>
-                    <span class="clockValue text-[#0066cc] pt-[0.1875em]">${currentTime}</span>
+                    <span class="clockValue text-blue-600 pt-1">${currentTime}</span>
                     <span class="clockSeparator">|</span>
                     <span class="clockLabel">最終更新:</span>
-                    <span class="clockValue text-[#0066cc] pt-[0.1875em]">${lastUpdateTime}</span>
+                    <span class="clockValue text-blue-600 pt-1">${lastUpdateTime}</span>
                 </div>
             </div>
 

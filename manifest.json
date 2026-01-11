@@ -22,8 +22,6 @@
                 "https://site3.sbisec.co.jp/ETGate/?_ControlID=WPLETpfR001Control&_PageID=DefaultPID&_ActionID=DefaultAID&_DataStoreID=DSWPLETpfR001Control&OutSide=on&getFlg=on&_scpr=intpr=hn_trade*"
             ],
             "js": [
-                "libs/chart.min.js",
-                "libs/tailwindcss.js",
                 "init.js" // ローダー経由でコンテントスクリプトを読み込むことで import/export 文を使用可能にする
             ],
             "css": [
