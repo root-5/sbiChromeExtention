@@ -1,6 +1,5 @@
 /**
  * UI表示用データ変換モジュール
- * (旧 UIDataAdapter)
  */
 export class UIDataAdapter {
     /**

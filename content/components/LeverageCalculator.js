@@ -74,9 +74,9 @@ export function LeverageCalculatorComp({}) {
     }, [pulldownState.maxDrawdown, pulldownState.shockCare, pulldownState.stockType, pulldownState.drawdown]);
 
     return html`
-        <div id="calcToolsContainer" class="mt-8">
-            <h2 class="mb-2.5 text-blue-600 text-xl font-semibold">計算ツール</h2>
-            <div id="leverageCalculator" class="mt-4 p-4 border border-dashed border-blue-600 rounded-lg bg-blue-50 flex flex-col gap-3">
+        <div class="mt-8">
+            <h2 class="mb-1.5 text-blue-800 text-lg font-semibold">計算ツール</h2>
+            <div class="p-4 border border-dashed border-blue-800 rounded-lg bg-blue-50 flex flex-col gap-3">
                 <h3 class="m-0 text-base text-blue-800 font-bold">レバレッジ簡易計算</h3>
                 <div class="grid grid-cols-2 gap-x-3.5 gap-y-2.5 max-md:grid-cols-1">
                     <label class="flex flex-col gap-1.5 p-2.5 bg-white border border-blue-200 rounded-lg" for="maxDrawdownSelect">
@@ -124,9 +124,9 @@ export function LeverageCalculatorComp({}) {
                         </select>
                     </label>
                 </div>
-                <div class="grid grid-cols-[auto_1fr_auto] items-baseline gap-2 p-3 bg-gradient-to-r from-blue-100 to-white border border-blue-200 rounded-lg">
+                <div class="grid grid-cols-[auto_1fr_auto] items-baseline gap-2 p-3 bg-blue-100 border border-blue-200 rounded-lg">
                     <div class="font-bold text-blue-800">計算結果</div>
-                    <div class="text-2xl font-bold text-blue-600 text-right" data-leverage-result>${result}</div>
+                    <div class="text-2xl font-bold text-blue-800 text-right" data-leverage-result>${result}</div>
                     <div class="font-semibold text-blue-800">倍</div>
                     <div class="col-span-full text-sm text-gray-600 leading-snug" data-leverage-detail>${detailText}</div>
                 </div>

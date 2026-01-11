@@ -59,40 +59,40 @@ export function App() {
         return UIDataAdapter.preparePortfolioData(accountData.accountViewData);
     }, [accountData]);
 
+    // 取引履歴と当日約定をマージしてメモ化
     const mergedTradingLog = useMemo(() => {
         if (!accountData || !accountData.todayExecutions) return tradingLog;
         return UIDataAdapter.mergeTodayExecutions(tradingLog, accountData.todayExecutions);
     }, [tradingLog, accountData]);
 
+    // レンダリング
     if (loading) return html`<h1>Now Loading ...</h1>`;
-
     return html`
         <div
-            id="jpyAccountPanel"
-            class="relative w-[90%] max-w-7xl mx-auto my-5 p-8 bg-white text-gray-800 text-left font-sans font-normal text-sm align-middle border-2 border-blue-600 rounded-xl shadow-lg overflow-hidden max-lg:text-sm max-lg:m-5 max-sm:text-xs"
+            class="relative w-[90%] max-w-7xl mx-auto my-5 p-8 bg-white text-gray-800 text-left font-['Helvetica'] text-sm align-middle border-2 border-blue-800 rounded-xl shadow-lg overflow-hidden max-lg:text-sm max-lg:m-5 max-sm:text-xs"
         >
-            <div class="flex flex-nowrap justify-between gap-8 header-row">
+            <div class="flex flex-nowrap justify-between gap-8">
                 <h1 class="text-xl font-bold">日本円建て口座ポートフォリオ</h1>
-                <div id="jpyAccountClock" class="flex items-center justify-end gap-3">
-                    <span class="clockLabel">現在時刻:</span>
-                    <span class="clockValue text-blue-600 pt-1">${currentTime}</span>
-                    <span class="clockSeparator">|</span>
-                    <span class="clockLabel">最終更新:</span>
-                    <span class="clockValue text-blue-600 pt-1">${lastUpdateTime}</span>
+                <div class="flex items-center justify-end gap-3">
+                    <span>現在時刻:</span>
+                    <span class="text-blue-800">${currentTime}</span>
+                    <span>|</span>
+                    <span>最終更新:</span>
+                    <span class="text-blue-800">${lastUpdateTime}</span>
                 </div>
             </div>
 
             <div class="flex flex-nowrap justify-between gap-8">
-                <${PieChartComp} data=${uiData?.summaryData ? accountData.accountViewData.graphData : null} />
-                <div class="right-panel">${uiData && html`<${PortfolioComp} accountViewData=${uiData} />`}</div>
+                <${PieChartComp} data=${accountData.accountViewData.graphData} />
+                <div>${html`<${PortfolioComp} accountViewData=${uiData} />`}</div>
             </div>
 
             <div class="flex flex-nowrap justify-between gap-8">
                 <${TradingLogComp} tradingLog=${mergedTradingLog} />
-                ${accountData && html`<${PriceChangeComp} priceChangePivot=${accountData.priceChangePivot} />`}
+                ${html`<${PriceChangeComp} priceChangePivot=${accountData.priceChangePivot} />`}
             </div>
 
-            ${uiData && html` <${LeverageCalculatorComp} netTotalMarketCap=${accountData.accountViewData.netTotalMarketCap} totalMarketCap=${accountData.accountViewData.totalMarketCap} /> `}
+            ${html` <${LeverageCalculatorComp} netTotalMarketCap=${accountData.accountViewData.netTotalMarketCap} totalMarketCap=${accountData.accountViewData.totalMarketCap} /> `}
         </div>
     `;
 }
