@@ -1,37 +1,40 @@
-// レバレッジ計算の保存キーと係数マスタ
-const LEVERAGE_STORAGE_KEY = 'sbiExtLeverageCalculator';
-const leverageConfig = {
-    maxDrawdown: {
-        dd30: 0.55,
-        dd50: 0.9,
-        dd66: 1.2,
-    },
-    shockCare: {
-        care: 1,
-        ignore: 55 / 33,
-    },
-    stockType: {
-        index: 1,
-        largeMultiple: 0.8,
-        largeSingle: 0.66,
-        smallMultiple: 0.5,
-        smallSingle: 0.33,
-    },
-    drawdown: {
-        recentHigh: 1,
-        drop30: 1.5,
-        drop60: 2.0,
-    },
-};
+// ==============================================================
+// レバレッジ簡易計算モジュール
+// ==============================================================
 
 /**
  * レバレッジ簡易計算パネルを初期化する関数
  * テンプレート挿入後に1度だけ実行し、選択状態の復元・計算・保存を行う
  */
 function setupLeverageCalculator() {
-    const calculator = document.getElementById('leverageCalculator');
-    if (!calculator) return;
+    // レバレッジ計算の保存キーと係数マスタ
+    const LEVERAGE_STORAGE_KEY = 'sbiExtLeverageCalculator';
+    const leverageConfig = {
+        maxDrawdown: {
+            dd30: 0.55,
+            dd50: 0.9,
+            dd66: 1.2,
+        },
+        shockCare: {
+            care: 1,
+            ignore: 55 / 33,
+        },
+        stockType: {
+            index: 1,
+            largeMultiple: 0.8,
+            largeSingle: 0.66,
+            smallMultiple: 0.5,
+            smallSingle: 0.33,
+        },
+        drawdown: {
+            recentHigh: 1,
+            drop30: 1.5,
+            drop60: 2.0,
+        },
+    };
 
+    // 要素取得
+    const calculator = document.getElementById('leverageCalculator');
     const selects = {
         maxDrawdown: calculator.querySelector('[data-leverage-select="maxDrawdown"]'),
         shockCare: calculator.querySelector('[data-leverage-select="shockCare"]'),

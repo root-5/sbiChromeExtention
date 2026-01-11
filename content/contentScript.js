@@ -15,18 +15,16 @@ if (title.includes('ポートフォリオ')) main();
  * メイン処理
  */
 async function main() {
-    // テンプレートを読み込み、指定要素にセット
-    const TARGET_ELE_ID = 'TIMEAREA01';
     const TEMPLATE = 'content/templates/portfolioPanel.html';
-    await TemplateEngine.setTemplate(TARGET_ELE_ID, TEMPLATE);
+    const TARGET_ELE_ID = 'TIMEAREA01';
 
-    // 初期描画 (データ取得)
-    const { tradingLog } = await JpyAccount.fetchInitialData();
-    // 整形はSWで済み
+    // 初期描画
+    await TemplateEngine.setTemplate(TARGET_ELE_ID, TEMPLATE);
+    const { tradingLog } = await JpyAccount.fetchInitialData(); // 昨日以前の取引履歴は毎回取得する必要がないため初回だけ取得
     JpyAccount.drawTradingLogTable(tradingLog);
     setupLeverageCalculator();
 
-    // 最初の更新
+    // 最初のデータ更新
     await updateJpyAccount();
     TemplateEngine.updateTime('lastUpdateTime');
 
@@ -39,28 +37,23 @@ async function main() {
  * 円建て口座データを取得して、グラフとテーブルを描画
  */
 async function updateJpyAccount() {
-    try {
-        const { accountViewData, todayExecutions, priceChangePivot } = await JpyAccount.fetchRefreshData();
+    const { accountViewData, todayExecutions, priceChangePivot } = await JpyAccount.fetchRefreshData();
 
-        jpyAccountChart = JpyAccount.drawCircleChart(accountViewData.graphData, jpyAccountChart); // チャートデータ更新
-        JpyAccount.drawPortfolioTable(accountViewData); // テーブル再描画
-        JpyAccount.drawTodayExecutionToTradingLogTable(todayExecutions); // 当日約定追記
-        JpyAccount.drawPriceChangeTable(priceChangePivot); // 価格変動テーブル描画
-    } catch (e) {
-        console.error('Update Jpy Account Failed:', e);
-    }
+    jpyAccountChart = JpyAccount.drawCircleChart(accountViewData.graphData, jpyAccountChart); // チャートデータ更新
+    JpyAccount.drawPortfolioTable(accountViewData); // テーブル再描画
+    JpyAccount.drawTodayExecutionToTradingLogTable(todayExecutions); // 当日約定追記
+    JpyAccount.drawPriceChangeTable(priceChangePivot); // 価格変動テーブル描画
 }
 
 /**
- * 時刻更新と円建て口座データの定期更新する関数
+ * 時刻更新と updateJpyAccount 実行を行う関数（定期更新用）
  */
 function schedulerTask() {
-    const now = new Date();
-
     // 時刻表示を更新
     TemplateEngine.updateTime('currentTime');
-
+    
     // 平日の場中（9:00〜15:30）以外は処理をスキップ
+    const now = new Date();
     const day = now.getDay();
     const hours = now.getHours();
     const minutes = now.getMinutes();

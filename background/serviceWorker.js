@@ -107,7 +107,7 @@ const MESSAGE_HANDLERS = {
 };
 
 // コンテンツスクリプトからのメッセージを受信、対応表に基づいて処理を実行
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, _, sendResponse) => {
     const handler = MESSAGE_HANDLERS[message.type];
     if (typeof handler === 'function') {
         handler(message.params || {})
