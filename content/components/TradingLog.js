@@ -1,6 +1,10 @@
+// =======================================
+// 取引履歴コンポーネント
+// =======================================
+
 import { html } from '../utils/preact-adapter.js';
 
-export function TradingLogTable({ tradingLog }) {
+export function TradingLogComp({ tradingLog }) {
     if (!tradingLog || tradingLog.length === 0) return null;
 
     return html`

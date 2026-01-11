@@ -1,6 +1,10 @@
+// =======================================
+// 円グラフコンポーネント
+// =======================================
+
 import { html, useEffect, useRef } from '../utils/preact-adapter.js';
 
-export function PieChart({ data }) {
+export function PieChartComp({ data }) {
     const canvasRef = useRef(null);
     const chartInstanceRef = useRef(null);
 

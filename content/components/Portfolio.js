@@ -1,8 +1,10 @@
+// =======================================
+// ポートフォリオコンポーネント
+// =======================================
+
 import { html } from '../utils/preact-adapter.js';
 
-export function PortfolioTable({ accountViewData }) {
-    if (!accountViewData) return null;
-
+export function PortfolioComp({ accountViewData }) {
     const { summaryData, leverageRows, tableRows, classData } = accountViewData;
     const { netTotalMarketCap, totalMarketCap, leverage, buyingPower, totalProfit } = summaryData;
     const { totalProfit: totalProfitClass } = classData;

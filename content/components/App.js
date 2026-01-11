@@ -1,11 +1,11 @@
 import { html, useState, useEffect, useMemo } from '../utils/preact-adapter.js';
 import { BackendClient } from '../modules/backendClient.js';
 import { UIDataAdapter } from '../modules/uiDataAdapter.js';
-import { PieChart } from './PieChart.js';
-import { Portfolio } from './Portfolio.js';
-import { LeverageCalculator } from './LeverageCalculator.js';
-import { TradingLogTable } from './TradingLog.js';
-import { PriceChange } from './PriceChange.js';
+import { PieChartComp } from './PieChart.js';
+import { PortfolioComp } from './Portfolio.js';
+import { LeverageCalculatorComp } from './LeverageCalculator.js';
+import { TradingLogComp } from './TradingLog.js';
+import { PriceChangeComp } from './PriceChange.js';
 
 export function App() {
     const [currentTime, setCurrentTime] = useState('');
@@ -80,16 +80,16 @@ export function App() {
             </div>
 
             <div class="flex">
-                <${PieChart} data=${uiData?.summaryData ? accountData.accountViewData.graphData : null} />
-                <div class="right-panel">${uiData && html`<${Portfolio} accountViewData=${uiData} />`}</div>
+                <${PieChartComp} data=${uiData?.summaryData ? accountData.accountViewData.graphData : null} />
+                <div class="right-panel">${uiData && html`<${PortfolioComp} accountViewData=${uiData} />`}</div>
             </div>
 
             <div class="flex">
-                <${TradingLogTable} tradingLog=${mergedTradingLog} />
-                ${accountData && html`<${PriceChange} priceChangePivot=${accountData.priceChangePivot} />`}
+                <${TradingLogComp} tradingLog=${mergedTradingLog} />
+                ${accountData && html`<${PriceChangeComp} priceChangePivot=${accountData.priceChangePivot} />`}
             </div>
 
-            ${uiData && html` <${LeverageCalculator} netTotalMarketCap=${accountData.accountViewData.netTotalMarketCap} totalMarketCap=${accountData.accountViewData.totalMarketCap} /> `}
+            ${uiData && html` <${LeverageCalculatorComp} netTotalMarketCap=${accountData.accountViewData.netTotalMarketCap} totalMarketCap=${accountData.accountViewData.totalMarketCap} /> `}
         </div>
     `;
 }

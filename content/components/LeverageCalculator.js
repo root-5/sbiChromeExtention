@@ -4,7 +4,7 @@
 
 import { html, useState, useMemo } from '../utils/preact-adapter.js';
 
-export function LeverageCalculator({}) {
+export function LeverageCalculatorComp({}) {
     const LEVERAGE_STORAGE_KEY = 'sbiExtLeverageCalculator';
     // localStorage.removeItem(LEVERAGE_STORAGE_KEY); // デバッグ用：設定リセット
 

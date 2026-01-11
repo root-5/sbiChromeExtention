@@ -380,7 +380,7 @@ body > div:nth-child(1) {
 }
 
 /* 株価変化率と売買数テーブルコンテナ */
-#priceChangeTableContainer {
+#PriceChangeContainer {
   width: calc(57% - 1em);
   margin-top: 1.875em;
 

@@ -1,6 +1,10 @@
+// =======================================
+// 株価変化率と売買数コンポーネント
+// =======================================
+
 import { html } from '../utils/preact-adapter.js';
 
-export function PriceChangeTable({ priceChangePivot }) {
+export function PriceChangeComp({ priceChangePivot }) {
     if (!priceChangePivot || priceChangePivot.length === 0) return null;
 
     // 日付リスト
@@ -26,10 +30,10 @@ export function PriceChangeTable({ priceChangePivot }) {
     });
 
     return html`
-        <div id="priceChangeTableContainer">
+        <div id="PriceChangeContainer">
             <h2>株価変化率と売買数</h2>
             <div class="table-wrapper">
-                <table id="priceChangeTable">
+                <table id="PriceChange">
                     <thead>
                         <tr>
                             <th rowspan="2" class="code-header">コード</th>
