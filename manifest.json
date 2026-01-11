@@ -42,10 +42,12 @@
     "web_accessible_resources": [ // ウェブページからアクセス可能なリソースを定義
         {
             "resources": [
-                "content/templates/*.html",
                 "env.json",
                 "content/contentScript.js",
-                "content/modules/*.js"
+                "content/components/*.js",
+                "content/utils/*.js",
+                "content/modules/*.js",
+                "libs/*.js"
             ],
             "matches": [
                 "https://site3.sbisec.co.jp/*"

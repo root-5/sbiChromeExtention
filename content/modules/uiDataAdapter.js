@@ -1,14 +1,16 @@
 /**
- * サービスワーカーから受信したデータをUI表示用に調整するモジュール
+ * UI表示用データ変換モジュール
+ * (旧 UIDataAdapter)
  */
 export class UIDataAdapter {
     /**
      * ポートフォリオテーブル表示用のデータ生成
      * @param {Object} accountViewData
-     * @returns {Object} TemplateEngineに渡すためのデータセット
+     * @returns {Object} Preactコンポーネントに渡すためのデータセット
      */
     static preparePortfolioData(accountViewData) {
-        const { netTotalMarketCap, totalMarketCap, leverageManagementData, tableTextData, totalProfit, buyingPower } = accountViewData;
+        if (!accountViewData) return null;
+        const { netTotalMarketCap, totalMarketCap, leverageManagementData, tableTextData, totalProfit, buyingPower, graphData } = accountViewData;
 
         // レバレッジ管理用行データ
         const leverageRows = leverageManagementData.map((d) => ({
@@ -40,7 +42,7 @@ export class UIDataAdapter {
             totalProfit: `profit ${totalProfitClass}`,
         };
 
-        return { leverageRows, tableRows, summaryData, classData };
+        return { leverageRows, tableRows, summaryData, classData, graphData };
     }
 
     /**
@@ -51,7 +53,8 @@ export class UIDataAdapter {
      */
     static mergeTodayExecutions(currentLog, todayExecutions) {
         if (!todayExecutions || todayExecutions.length === 0) return currentLog;
-        // 当日約定を先頭に追加
+        // 重複チェックなどは必要であれば行うが、ここでは単純結合
+        // 必要ならユニークIDでフィルタリング等を追加
         return [...todayExecutions, ...currentLog];
     }
 }

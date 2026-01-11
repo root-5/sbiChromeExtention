@@ -1,4 +1,4 @@
-# SBI証券用 Chrome 拡張機能
+# SBI 証券用 Chrome 拡張機能
 
 ![画面イメージ](sample.png)
 
@@ -16,18 +16,27 @@ sbiChromeExtention/
 ├── background/
 │   └── serviceWorker.js        # バックグラウンド処理用サービスワーカー、データの取得担当
 ├── content/
-│   ├── templates/              # HTML テンプレート
-│   ├── contentScript.js        # ページに直接挿入される JS ファイル、データの整形・レンダリング担当
-│   └── contentStyles.css       # ページに直接挿入される CSS ファイル
+│   ├── components/             # Preactコンポーネント
+│   ├── modules/                # ロジックモジュール
+│   ├── utils/                  # ユーティリティ (Preactアダプター等)
+│   ├── contentScript.js        # エントリーポイント
+│   └── contentStyles.css       # スタイル定義
 ├── icons/                      # 拡張機能のアイコン
-└── libs/                       # ライブラリ
+├── libs/                       # ライブラリ (Preact, htm, Chart.js)
+└── init.js                     # ES Modules読み込み用ローダー
 ```
+
+## テクノロジー
+
+- **Manifest V3**: 最新の Chrome 拡張機能仕様に準拠
+- **Preact + HTM**: ビルドツールなしで React ライクなコンポーネント開発を実現
+- **Chart.js**: ポートフォリオの可視化
 
 ## 主要機能
 
 ### ポートフォリオデータ取得
 
-- SBI証券のポートフォリオページから総評価額、評価損益、保有銘柄を自動抽出
+- SBI 証券のポートフォリオページから総評価額、評価損益、保有銘柄を自動抽出
 - `content/contentScript.js` で実装
 - 一部機能は個人の株式情報サーバー [InvestSupporter](https://github.com/root-5/InvestSupporter) を利用
 
@@ -36,7 +45,7 @@ sbiChromeExtention/
 - バックグラウンドで定期的にデータを更新
 - `background/serviceWorker.js` で管理
 
-### 改良されたUI
+### 改良された UI
 
 - ポップアップウィンドウでポートフォリオサマリーを表示
 - ページ上に拡張された情報パネルを追加
@@ -44,18 +53,18 @@ sbiChromeExtention/
 ## デバッグ方法
 
 1. サービスワーカーのデバッグ
-    chrome://extensions/ → 拡張機能の詳細 → サービスワーカー → 検査
+   chrome://extensions/ → 拡張機能の詳細 → サービスワーカー → 検査
 
 2. コンテンツスクリプトのデバッグ
-    SBI証券のページで F12 → Console タブでログを確認
+   SBI 証券のページで F12 → Console タブでログを確認
 
 3. ポップアップのデバッグ
-    拡張機能アイコンを右クリック → 検査
+   拡張機能アイコンを右クリック → 検査
 
 ## 今後の拡張予定
 
 - [x] 基本的なファイル構造の作成
-- [x] SBI証券データ抽出の実装
+- [x] SBI 証券データ抽出の実装
 - [x] アイコンの適用
 - [x] 取引履歴の取得・表示
 - [ ] 外貨建て口座対応
@@ -65,4 +74,4 @@ sbiChromeExtention/
 ## ライセンス
 
 このプロジェクトは個人利用目的で開発されています。
-SBI証券の利用規約を遵守して、自己責任で使用してください。
+SBI 証券の利用規約を遵守して、自己責任で使用してください。
