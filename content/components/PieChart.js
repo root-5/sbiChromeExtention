@@ -2,28 +2,11 @@
 // 円グラフコンポーネント
 // =======================================
 
-import { html, useEffect, useRef, useMemo } from '../utils/preact-adapter.js';
+import { html, useEffect, useRef } from '../utils/preact-adapter.js';
 
 export function PieChartComp({ data }) {
     const canvasRef = useRef(null);
     const chartInstanceRef = useRef(null);
-    const pieChartStyles = useMemo(
-        () => `
-        #jpyAccountPieChartContainer {
-            padding: 1.25em;
-            width: 35%;
-            max-width: 23.4375em;
-            aspect-ratio: 1;
-        }
-
-        @media (max-width: 30em) {
-            #jpyAccountPieChartContainer {
-                padding: 0.9375em;
-            }
-        }
-    `,
-        []
-    );
 
     useEffect(() => {
         if (!canvasRef.current || !data) return;
@@ -110,9 +93,6 @@ export function PieChartComp({ data }) {
     }, [data]);
 
     return html`
-        <style>
-            ${pieChartStyles}
-        </style>
         <div id="jpyAccountPieChartContainer">
             <canvas ref=${canvasRef} id="jpyAccountPieChartCanvas"></canvas>
         </div>
