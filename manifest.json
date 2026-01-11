@@ -24,7 +24,7 @@
             "js": [
                 "libs/chart.min.js", // 先に読み込む必要がある
                 "libs/tailwindcss.js", // 先に読み込む必要がある
-                "init.js" // ローダー経由でコンテントスクリプトを読み込むことで import/export 文を使用可能にする
+                "scriptLoader.js" // ローダー経由でコンテントスクリプトを読み込むことで import/export 文を使用可能にする
             ],
             "css": [
                 "content/contentStyles.css"

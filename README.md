@@ -8,6 +8,10 @@
 具体的には、ポートフォリオ、取引履歴、価格推移などを取得し、優れた UI で表示することを目的としています。
 Manifest V3 に準拠し、サービスワーカーを使用してバックグラウンドで処理を実行します。
 
+- [Preact](https://preactjs.com/?lang=ja)
+- [Chart.js](https://www.chartjs.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+
 ### プロジェクト構造
 
 ```text
