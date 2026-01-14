@@ -8,29 +8,31 @@ export class IdecoAccountFetch {
      */
     static async fetchAccountAPI() {
         // iDeCo 口座は特殊で、専用のセッションが必要。複数のリダイレクトを経由してセッションを確立させる必要があるため、まず専用の認証 URLを開いてセッションを確立させる。
+        // 自動リダイレクトにより最終的に benefit401k.com のページに到達するまで待機する。
         const tab = await chrome.tabs.create({
-            url: '/ETGate/?_ControlID=WPLETsmR001Control&_DataStoreID=DSWPLETsmR001Control&sw_page=Benefit&sw_param1=AccountOpen&getFlg=on&OutSide=on',
+            url: 'https://site3.sbisec.co.jp/ETGate/?_ControlID=WPLETsmR001Control&_DataStoreID=DSWPLETsmR001Control&sw_page=Benefit&sw_param1=AccountOpen&getFlg=on&OutSide=on',
             active: false,
         });
 
-        // タブの読み込み完了を待機してから閉じる
+        // Benefit401kのドメインに到達するまで待機
         await new Promise((resolve) => {
-            const listener = (tabId, changeInfo) => {
-                if (tabId === tab.id && changeInfo.status === 'complete') {
+            const listener = (tabId, changeInfo, tabInfo) => {
+                if (tabId === tab.id && changeInfo.status === 'complete' && tabInfo.url && tabInfo.url.includes('benefit401k.com')) {
                     chrome.tabs.onUpdated.removeListener(listener);
-                    chrome.tabs.remove(tabId).catch(() => {});
                     resolve();
                 }
             };
             chrome.tabs.onUpdated.addListener(listener);
 
-            // ずっとページが開かない場合のタイムアウト (15秒)
+            // ずっとページが開かない場合のタイムアウト (5秒)
             setTimeout(() => {
                 chrome.tabs.onUpdated.removeListener(listener);
-                chrome.tabs.remove(tab.id).catch(() => {});
                 resolve();
-            }, 15000);
+            }, 5000);
         });
+
+        // タブを閉じる
+        chrome.tabs.remove(tab.id).catch(() => {});
 
         // iDeCo 口座情報ページのURLからHTMLを取得
         const url = 'https://www.benefit401k.com/customer/RkDCMember/Home/JP_D_MemHome.aspx';
