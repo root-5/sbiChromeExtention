@@ -10,9 +10,21 @@ export class UsdAccountFetch {
         // 外貨建口座は特殊で円建て口座と異なる専用のセッション (SSO?) が必要。そのため、まず専用の SSO 認証 URLを開いてセッションを確立させる。
         // この処理は通常「口座(外貨建)」メニューをクリックしたときにリダイレクトを使用して行われているが、拡張機能からはリダイレクトを直接発生させられないため、ここで新しいタブを開いて対応する。
         // fetch を使用しないのはこのリダイレクト処理中に hidden された input 要素の値を送信する必要があるため。
-        await chrome.tabs.create({
+        const tab = await chrome.tabs.create({
             url: 'https://www.sbisec.co.jp/ETGate/?_ControlID=WPLETsmR001Control&_PageID=WPLETsmR001Sdtl18&_ActionID=NoActionID&_DataStoreID=DSWPLETsmR001Control&OutSide=on&getFlg=on&sw_param1=account&sw_param2=foreign&sw_param3=summary&_scpr=intpr=hn_acc_f',
             active: false,
+        });
+
+        // タブの読み込み完了を待機してから閉じることで、SSO連携を完了させる
+        await new Promise((resolve) => {
+            const listener = (tabId, changeInfo) => {
+                if (tabId === tab.id && changeInfo.status === 'complete') {
+                    chrome.tabs.onUpdated.removeListener(listener);
+                    chrome.tabs.remove(tabId).catch(() => {});
+                    resolve();
+                }
+            };
+            chrome.tabs.onUpdated.addListener(listener);
         });
 
         const url = 'https://site.sbisec.co.jp/account/api/foreign/summary';
