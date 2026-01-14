@@ -7,6 +7,8 @@ import { JpyAccountFetch } from './modules/jpyAccountFetch.js';
 import { JpyAccountParse } from './modules/jpyAccountParse.js';
 import { UsdAccountFetch } from './modules/usdAccountFetch.js';
 import { UsdAccountParse } from './modules/usdAccountParse.js';
+import { IdecoAccountFetch } from './modules/idecoAccountFetch.js';
+import { IdecoAccountParse } from './modules/idecoAccountParse.js';
 import { ExternalResourceFetch } from './modules/externalResourceFetch.js';
 import { ExternalResourceParse } from './modules/externalResourceParse.js';
 
@@ -27,21 +29,20 @@ const MESSAGE_HANDLERS = {
      */
     GET_INITIAL_DATA: async () => {
         // 並行して実行
-        const [csv, usdJson] = await Promise.all([
+        const [tradingLogCsv, usdJson] = await Promise.all([
             JpyAccountFetch.fetchTradingLogCsv(),
             UsdAccountFetch.fetchAccountAPI().catch((e) => {
                 return {}; // 失敗時も空オブジェクトで続行
             }),
+            IdecoAccountFetch.fetchAccountAPI().catch((e) => {
+                return {}; // 失敗時も空オブジェクトで続行
+            }),
         ]);
 
-        // 取引履歴パース
-        const rawData = JpyAccountParse.parseTradingLogCsv(csv);
+        // 取引履歴のパース・集計・フォーマット
+        const rawData = JpyAccountParse.parseTradingLogCsv(tradingLogCsv);
         cachedTradingLogOriginal = rawData.tradingLog;
-
-        // 集計
         cachedTotaledTradingLog = JpyAccountParse.summarizeTradingLog(cachedTradingLogOriginal);
-
-        // 表示用にフォーマットして返却
         const formattedLog = cachedTotaledTradingLog.map((item) => ({
             ...item,
             quantity: item.quantity.toLocaleString(),
@@ -51,9 +52,13 @@ const MESSAGE_HANDLERS = {
         // 外貨口座パース
         const usdData = await UsdAccountParse.parseAccountJSON(usdJson);
 
+        // iDeco 口座パース
+        const idecoData = await IdecoAccountParse.parseAccountHTML(idecoHtml);
+
         return {
             tradingLog: formattedLog,
             usdAccountData: usdData,
+            idecoAccountData: idecoData,
         };
     },
 
