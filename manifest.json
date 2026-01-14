@@ -4,13 +4,14 @@
     "version": "1.0.0",
     "description": "SBI証券のポートフォリオ、取引履歴を独自UIで表示する拡張機能",
     "permissions": [
+        "tabs",
         "activeTab",
         "scripting"
     ],
     "host_permissions": [
+        // SBI証券以外にも GoogleFinance, 個人用API などを利用するためにスコープを広げる
         "http://*/*",
-        "https://*/*",
-        "https://site.sbisec.co.jp/"
+        "https://*/*"
     ],
     "background": {
         "service_worker": "background/serviceWorker.js",
@@ -19,6 +20,7 @@
     "content_scripts": [ // ウェブページに自動的に注入されるスクリプトやスタイルシートを定義
         {
             "matches": [
+                // ポートフォリオページを指定
                 "https://site3.sbisec.co.jp/ETGate/?_ControlID=WPLETpfR001Control&_PageID=DefaultPID&_ActionID=DefaultAID&_DataStoreID=DSWPLETpfR001Control&OutSide=on&getFlg=on&_scpr=intpr=hn_trade",
                 "https://site3.sbisec.co.jp/ETGate/?_ControlID=WPLETpfR001Control&_PageID=DefaultPID&_ActionID=DefaultAID&_DataStoreID=DSWPLETpfR001Control&OutSide=on&getFlg=on&_scpr=intpr=hn_trade*"
             ],
@@ -52,6 +54,7 @@
                 "libs/*.js"
             ],
             "matches": [
+                "https://site.sbisec.co.jp/*",
                 "https://site3.sbisec.co.jp/*"
             ]
         }
