@@ -25,7 +25,7 @@ let cachedClosePriceData = null; // 終値データ
 // メッセージハンドラ定義
 const MESSAGE_HANDLERS = {
     /**
-     * 初回データ取得（取引履歴、および外貨建口座情報）
+     * 初回データ取得（取引履歴、および iDeCo/外貨建口座情報）
      */
     GET_INITIAL_DATA: async () => {
         // 並行して実行
@@ -52,8 +52,8 @@ const MESSAGE_HANDLERS = {
         // 外貨口座パース
         const usdData = UsdAccountParse.parseAccountJSON(usdJson);
 
-        // iDeco 口座パース
-        const idecoData = IdecoAccountParse.parseAccountHTML(idecoHtml);
+        // iDeCo 口座パース
+        const idecoData = idecoHtml ? IdecoAccountParse.parseAccountHTML(idecoHtml) : [];
 
         return {
             tradingLog: formattedLog,

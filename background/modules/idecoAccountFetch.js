@@ -1,13 +1,13 @@
 /**
- * iDeco 口座情報関連のリソースリクエストを担当するモジュール
+ * iDeCo 口座情報関連のリソースリクエストを担当するモジュール
  */
 export class IdecoAccountFetch {
     /**
-     * iDeco 口座APIを取得
-     * @returns {Promise<Object>} APIレスポンスのJSONオブジェクト
+     * iDeCo 口座APIを取得
+     * @returns {Promise<string>} HTML文字列
      */
     static async fetchAccountAPI() {
-        // iDeco 口座は特殊で、専用のセッションが必要。複数のリダイレクトを経由してセッションを確立させる必要があるため、まず専用の認証 URLを開いてセッションを確立させる。
+        // iDeCo 口座は特殊で、専用のセッションが必要。複数のリダイレクトを経由してセッションを確立させる必要があるため、まず専用の認証 URLを開いてセッションを確立させる。
         const tab = await chrome.tabs.create({
             url: '/ETGate/?_ControlID=WPLETsmR001Control&_DataStoreID=DSWPLETsmR001Control&sw_page=Benefit&sw_param1=AccountOpen&getFlg=on&OutSide=on',
             active: false,
@@ -32,7 +32,7 @@ export class IdecoAccountFetch {
             }, 15000);
         });
 
-        // iDeco 口座情報ページのURLからHTMLを取得
+        // iDeCo 口座情報ページのURLからHTMLを取得
         const url = 'https://www.benefit401k.com/customer/RkDCMember/Home/JP_D_MemHome.aspx';
         try {
             const response = await fetch(url, {
@@ -46,9 +46,10 @@ export class IdecoAccountFetch {
             const resultBuffer = await response.arrayBuffer();
             const resultUint8Array = new Uint8Array(resultBuffer);
             const html = new TextDecoder('shift-jis').decode(resultUint8Array);
+            if (html.includes('再度ログインしてください')) throw new Error('iDeCo 口座のセッションが確立できませんでした。再度ログインしてください。');
             return html;
         } catch (error) {
-            console.error('iDeco 口座API取得エラー:', error);
+            console.error('iDeCo 口座API取得エラー:', error);
             throw error;
         }
     }

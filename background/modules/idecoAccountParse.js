@@ -1,9 +1,14 @@
 /**
- * iDeco 口座情報関連の変換処理を担当するモジュール
+ * iDeCo 口座情報関連の変換処理を担当するモジュール
  */
 export class IdecoAccountParse {
+    /**
+     * iDeCo 口座HTMLをパースしてオブジェクト配列に変換
+     * @param {string} html iDeCo 口座HTML文字列
+     * @returns {Array<Object>} iDeCo 口座データ配列
+     */
     static parseAccountHTML(html) {
-        // HTML から iDeco の情報を抽出する関数
+        // HTML から iDeCo の情報を抽出する関数
         const profitAndLossEles = html.match(/損益表[\s\S]*?\/損益表/)[0]; // 「損益表」から「/損益表」までの間を取得
         const profitAndLossTable = profitAndLossEles.match(/<table[\s\S]*?<\/table>/)[0]; // 「<table」から「</table>」までの間を取得
 
@@ -38,7 +43,7 @@ export class IdecoAccountParse {
             const row = filteredSquareArray[i];
             idecoArray.push({
                 currencyType: '円建',
-                depositType: 'iDeco',
+                depositType: 'iDeCo',
                 marginType: '現物',
                 productType: row[0],
                 productName: row[1],

@@ -8,10 +8,6 @@
 具体的には、ポートフォリオ、取引履歴、価格推移などを取得し、優れた UI で表示することを目的としています。
 Manifest V3 に準拠し、サービスワーカーを使用してバックグラウンドで処理を実行します。
 
-- [Preact](https://preactjs.com/?lang=ja)
-- [Chart.js](https://www.chartjs.org/)
-- [Tailwind CSS](https://tailwindcss.com/)
-
 ### プロジェクト構造
 
 ```text
@@ -32,16 +28,17 @@ sbiChromeExtention/
 
 ## テクノロジー
 
-- **Manifest V3**: 最新の Chrome 拡張機能仕様に準拠
-- **Preact + HTM**: ビルドツールなしで React ライクなコンポーネント開発を実現
-- **Chart.js**: ポートフォリオの可視化
+- Manifest V3: 最新の Chrome 拡張機能仕様に準拠
+- [Preact](https://preactjs.com/?lang=ja)
+- [Chart.js](https://www.chartjs.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
 
 ## 主要機能
 
 ### ポートフォリオデータ取得
 
 - SBI 証券のポートフォリオページから総評価額、評価損益、保有銘柄を自動抽出
-- 円建口座に加え、外貨建口座情報の取得と合算表示 (円グラフ、サマリー) に対応
+- 円建口座に加え、外貨建口座および iDeCo 口座情報の取得と合算表示 (円グラフ、サマリー) に対応
 - `content/contentScript.js` で実装
 - 一部機能は個人の株式情報サーバー [InvestSupporter](https://github.com/root-5/InvestSupporter) を利用
 
@@ -73,6 +70,7 @@ sbiChromeExtention/
 - [x] アイコンの適用
 - [x] 取引履歴の取得・表示
 - [x] 外貨建口座対応
+- [x] iDeCo口座対応
 - [ ] データエクスポート機能
 - [ ] バックエンドへデータ送信、記録
 

@@ -1,5 +1,5 @@
 // =======================================
-// 外貨建合算ポートフォリオコンポーネント
+// 全口座ポートフォリオコンポーネント
 // =======================================
 
 import { html } from '../utils/preact-adapter.js';
@@ -21,7 +21,7 @@ export function PortfolioAllComp({ accountViewData }) {
         <div class="pt-5 max-sm:p-2.5 max-sm:overflow-x-auto flex flex-col gap-6">
             <div class="flex justify-start gap-8">
                 <div>
-                    <h2 class="mb-1.5 text-green-800 text-lg font-semibold">サマリー (外貨建合算)</h2>
+                    <h2 class="mb-1.5 text-green-800 text-lg font-semibold">サマリー</h2>
                     <table class="border-collapse bg-white shadow-md rounded-md overflow-hidden align-middle w-fit">
                         <thead class="text-white bg-gradient-to-br from-green-800 to-green-800 border-b-2 border-green-900 whitespace-nowrap">
                             <tr>
@@ -93,7 +93,7 @@ export function PortfolioAllComp({ accountViewData }) {
                         </tbody>
                     </table>
                 </div>
-                <p class="mt-2 text-xs text-gray-500">※ iDeCo、銀行預金、ビットコインは含まれていません</p>
+                <p class="mt-2 text-xs text-gray-500">※ 銀行預金、ビットコインは含まれていません</p>
             </div>
         </div>
     `;

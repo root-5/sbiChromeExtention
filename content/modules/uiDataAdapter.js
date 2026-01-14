@@ -45,10 +45,10 @@ export class UIDataAdapter {
     }
 
     /**
-     * 外貨建合算ポートフォリオ表示用のデータ生成
+     * 全口座ポートフォリオ表示用のデータ生成
      * @param {Object} accountData JPY口座データ (DataRefreshResponse)
      * @param {Object} usdAccountData USD口座データ
-     * @param {Array} idecoAccountData iDeco口座データ
+     * @param {Array} idecoAccountData iDeCo口座データ
      * @returns {Object} Preactコンポーネントに渡すためのデータセット
      */
     static prepareAllAccountPortfolioData(accountData, usdAccountData, idecoAccountData) {
@@ -69,7 +69,7 @@ export class UIDataAdapter {
         const usdDeposit = usdAccountData.totalUsdDepositAsJpy || 0;
         const usdNetAsset = usdTotalStockVal + usdDeposit; // USD純資産
 
-        // iDecoデータの集計
+        // iDeCoデータの集計
         const idecoStocks = idecoAccountData || [];
         const formattedIdecoStocks = idecoStocks.map((s) => {
             const marketCap = parseNum(s.marketCap);
@@ -91,7 +91,7 @@ export class UIDataAdapter {
 
         // 合算計算
         const marginOpenInterest = jpyTotal - jpyNetTotal;
-        const newNetTotal = jpyNetTotal + usdNetAsset + idecoTotalVal; // 新純資産 = JPY純資産 + USD純資産 + iDeco
+        const newNetTotal = jpyNetTotal + usdNetAsset + idecoTotalVal; // 新純資産 = JPY純資産 + USD純資産 + iDeCo
         const newTotal = newNetTotal + marginOpenInterest; // 新総資産 = 新純資産 + 信用建玉
         const newBuyingPower = jpyBuyingPower + usdDeposit;
         const newLeverage = newNetTotal ? (newTotal / newNetTotal).toFixed(2) : '0.00';
@@ -115,7 +115,7 @@ export class UIDataAdapter {
                 return s;
             });
 
-        // 円建と外貨建の銘柄を結合、評価額降順ソート、長過ぎる名前を省略表示
+        // 円建・外貨建・iDeCo の銘柄を結合、評価額降順ソート、長過ぎる名前を省略表示
         const tableRows = [...formattedJpyStocks, ...usdStocks, ...formattedIdecoStocks]
             .sort((a, b) => b.marketCap - a.marketCap)
             .map((s) => ({
