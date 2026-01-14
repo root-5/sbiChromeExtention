@@ -23,6 +23,13 @@ export class IdecoAccountFetch {
                 }
             };
             chrome.tabs.onUpdated.addListener(listener);
+
+            // ずっとページが開かない場合のタイムアウト (15秒)
+            setTimeout(() => {
+                chrome.tabs.onUpdated.removeListener(listener);
+                chrome.tabs.remove(tab.id).catch(() => {});
+                resolve();
+            }, 15000);
         });
 
         // iDeco 口座情報ページのURLからHTMLを取得

@@ -25,6 +25,13 @@ export class UsdAccountFetch {
                 }
             };
             chrome.tabs.onUpdated.addListener(listener);
+
+            // ずっとページが開かない場合のタイムアウト (15秒)
+            setTimeout(() => {
+                chrome.tabs.onUpdated.removeListener(listener);
+                chrome.tabs.remove(tab.id).catch(() => {});
+                resolve();
+            }, 15000);
         });
 
         const url = 'https://site.sbisec.co.jp/account/api/foreign/summary';

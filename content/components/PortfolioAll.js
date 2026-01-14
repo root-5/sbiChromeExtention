@@ -61,21 +61,29 @@ export function PortfolioAllComp({ accountViewData }) {
                         <tbody>
                             ${tableRows.map((stock) => {
                                 const profitClass = getProfitClass(stock.profitLoss);
+                                const isIdeco = stock.depositType === 'iDeCo';
+
                                 return html`
                                     <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
                                         <td class="${cellPad} text-left font-bold text-gray-700">
                                             <div class="flex flex-col">
                                                 <span>${stock.name}</span>
-                                                <span class="text-xs text-gray-400 font-normal">${stock.code}</span>
+                                                <span class="text-xs text-gray-400 font-normal">${stock.code !== '-' ? stock.code : ''}</span>
                                             </div>
                                         </td>
-                                        <td class="${cellPad} text-right">${Math.floor(stock.price).toLocaleString()}</td>
-                                        <td class="${cellPad} text-right">${stock.quantity.toLocaleString()}</td>
+                                        <td class="${cellPad} text-right">${stock.price ? Math.floor(stock.price).toLocaleString() : '-'}</td>
+                                        <td class="${cellPad} text-right">${stock.quantity ? stock.quantity.toLocaleString() : '-'}</td>
                                         <td class="${cellPad} text-right font-medium">${Math.floor(stock.marketCap).toLocaleString()}</td>
                                         <td class="${cellPad} text-right ${profitClass}">${Math.floor(stock.profitLoss).toLocaleString()}</td>
                                         <td class="${cellPad} text-right ${profitClass}">${stock.profitLossRate.toFixed(2)}%</td>
                                         <td class="${cellPad} text-center">
-                                            <span class="px-2 py-1 rounded text-xs ${stock.currencyType === '外貨建' ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'}">
+                                            <span
+                                                class="px-2 py-1 rounded text-xs ${stock.currencyType === '外貨建'
+                                                    ? 'bg-orange-100 text-orange-800'
+                                                    : isIdeco
+                                                    ? 'bg-purple-100 text-purple-800'
+                                                    : 'bg-blue-100 text-blue-800'}"
+                                            >
                                                 ${stock.depositType}
                                             </span>
                                         </td>

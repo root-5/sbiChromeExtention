@@ -29,13 +29,13 @@ const MESSAGE_HANDLERS = {
      */
     GET_INITIAL_DATA: async () => {
         // 並行して実行
-        const [tradingLogCsv, usdJson] = await Promise.all([
+        const [tradingLogCsv, usdJson, idecoHtml] = await Promise.all([
             JpyAccountFetch.fetchTradingLogCsv(),
             UsdAccountFetch.fetchAccountAPI().catch((e) => {
-                return {}; // 失敗時も空オブジェクトで続行
+                return {}; // 失敗時も空オブジェクトで続行、緊急時の全体停止を避けるため
             }),
             IdecoAccountFetch.fetchAccountAPI().catch((e) => {
-                return {}; // 失敗時も空オブジェクトで続行
+                return ''; // 失敗時も空文字列で続行、緊急時の全体停止を避けるため
             }),
         ]);
 
@@ -50,10 +50,10 @@ const MESSAGE_HANDLERS = {
         }));
 
         // 外貨口座パース
-        const usdData = await UsdAccountParse.parseAccountJSON(usdJson);
+        const usdData = UsdAccountParse.parseAccountJSON(usdJson);
 
         // iDeco 口座パース
-        const idecoData = await IdecoAccountParse.parseAccountHTML(idecoHtml);
+        const idecoData = IdecoAccountParse.parseAccountHTML(idecoHtml);
 
         return {
             tradingLog: formattedLog,
@@ -133,6 +133,7 @@ const MESSAGE_HANDLERS = {
 
 // コンテンツスクリプトからのメッセージを受信、対応表に基づいて処理を実行
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (!MESSAGE_HANDLERS[message.type]) return false; // ハンドラが存在しない場合は処理しない
     const handler = MESSAGE_HANDLERS[message.type];
     handler(message.params)
         .then((data) => sendResponse({ success: true, data }))

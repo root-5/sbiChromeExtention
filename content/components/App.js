@@ -14,13 +14,14 @@ import { TradingLogComp } from './TradingLog.js';
 import { PriceChangeComp } from './PriceChange.js';
 
 export function App() {
-    const [currentTime, setCurrentTime] = useState('');
+    const [currentTime, setCurrentTime] = useState('--:--:--');
     const [lastUpdateTime, setLastUpdateTime] = useState('--:--:--');
     const [tradingLog, setTradingLog] = useState([]);
     const [accountData, setAccountData] = useState(null); // { accountViewData, todayExecutions, priceChangePivot }
     const [usdAccountData, setUsdAccountData] = useState(null);
+    const [idecoAccountData, setIdecoAccountData] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [isAllCurrencyMode, setIsAllCurrencyMode] = useState(false);
+    const [isAllAccountMode, setIsAllAccountMode] = useState(false);
 
     useEffect(() => {
         // 初期データ取得
@@ -28,6 +29,7 @@ export function App() {
             const initData = await BackendClient.fetchInitialData();
             setTradingLog(initData.tradingLog);
             setUsdAccountData(initData.usdAccountData);
+            setIdecoAccountData(initData.idecoAccountData);
             await updateData();
             setLoading(false);
         };
@@ -68,10 +70,10 @@ export function App() {
         return UIDataAdapter.preparePortfolioData(accountData.accountViewData);
     }, [accountData]);
 
-    // UI データ準備 (外貨建合算)
-    const allCurrencyUiData = useMemo(() => {
-        return UIDataAdapter.prepareAllCurrencyPortfolioData(accountData, usdAccountData);
-    }, [accountData, usdAccountData]);
+    // UI データ準備 (全口座)
+    const allAccountUiData = useMemo(() => {
+        return UIDataAdapter.prepareAllAccountPortfolioData(accountData, usdAccountData, idecoAccountData);
+    }, [accountData, usdAccountData, idecoAccountData]);
 
     // 取引履歴と当日約定をマージしてメモ化
     const mergedTradingLog = useMemo(() => {
@@ -87,12 +89,12 @@ export function App() {
         >
             <div class="flex flex-nowrap justify-between gap-8 h-8 items-center mb-4">
                 <div class="flex items-center gap-4">
-                    <h1 class="text-xl font-bold">${isAllCurrencyMode ? '外貨建合算ポートフォリオ' : '日本円建口座ポートフォリオ'}</h1>
+                    <h1 class="text-xl font-bold">${isAllAccountMode ? '全口座ポートフォリオ' : '日本円建口座ポートフォリオ'}</h1>
                     <button
-                        onClick=${() => setIsAllCurrencyMode(!isAllCurrencyMode)}
-                        class="px-3 py-1 text-white rounded hover:opacity-80 transition text-xs ${isAllCurrencyMode ? 'bg-green-700' : 'bg-blue-700'}"
+                        onClick=${() => setIsAllAccountMode(!isAllAccountMode)}
+                        class="px-3 py-1 text-white rounded hover:opacity-80 transition text-xs ${isAllAccountMode ? 'bg-green-700' : 'bg-blue-700'}"
                     >
-                        ${isAllCurrencyMode ? '円建のみ表示へ' : '外貨建合算表示へ'}
+                        ${isAllAccountMode ? '円建のみ表示へ' : '全口座表示へ'}
                     </button>
                     ${!usdAccountData && !loading ? html`<span class="text-xs text-red-500">(外貨データ未取得)</span>` : ''}
                 </div>
@@ -105,11 +107,11 @@ export function App() {
                 </div>
             </div>
 
-            ${isAllCurrencyMode && allCurrencyUiData
+            ${isAllAccountMode && allAccountUiData
                 ? html`
                       <div class="flex flex-nowrap justify-between gap-8">
-                          <${PieChartAllComp} data=${allCurrencyUiData.graphData} />
-                          <div>${html`<${PortfolioAllComp} accountViewData=${allCurrencyUiData} />`}</div>
+                          <${PieChartAllComp} data=${allAccountUiData.graphData} />
+                          <div>${html`<${PortfolioAllComp} accountViewData=${allAccountUiData} />`}</div>
                       </div>
                   `
                 : html`

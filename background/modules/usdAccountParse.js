@@ -11,7 +11,7 @@ export class UsdAccountParse {
      *   stocks: [{code: 'AAPL', name: 'Apple Inc.', quantity: 10, ...}, ...]
      * }
      */
-    static async parseAccountJSON(json) {
+    static parseAccountJSON(json) {
         try {
             const stocks = [];
             // 株式情報のパース

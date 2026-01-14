@@ -48,9 +48,10 @@ export class UIDataAdapter {
      * 外貨建合算ポートフォリオ表示用のデータ生成
      * @param {Object} accountData JPY口座データ (DataRefreshResponse)
      * @param {Object} usdAccountData USD口座データ
+     * @param {Array} idecoAccountData iDeco口座データ
      * @returns {Object} Preactコンポーネントに渡すためのデータセット
      */
-    static prepareAllCurrencyPortfolioData(accountData, usdAccountData) {
+    static prepareAllAccountPortfolioData(accountData, usdAccountData, idecoAccountData) {
         if (!accountData || !usdAccountData) return null;
 
         // JPY側数値パース (カンマと¥記号を除去して数値化)
@@ -68,9 +69,29 @@ export class UIDataAdapter {
         const usdDeposit = usdAccountData.totalUsdDepositAsJpy || 0;
         const usdNetAsset = usdTotalStockVal + usdDeposit; // USD純資産
 
+        // iDecoデータの集計
+        const idecoStocks = idecoAccountData || [];
+        const formattedIdecoStocks = idecoStocks.map((s) => {
+            const marketCap = parseNum(s.marketCap);
+            const profitLoss = parseNum(s.profitAndLoss);
+            const cost = marketCap - profitLoss;
+            return {
+                name: s.productName,
+                code: '-',
+                quantity: 0, // 数量取得不可
+                price: 0, // 単価取得不可
+                marketCap: marketCap,
+                profitLoss: profitLoss,
+                profitLossRate: cost ? (profitLoss / cost) * 100 : 0,
+                depositType: 'iDeCo',
+                currencyType: '円建',
+            };
+        });
+        const idecoTotalVal = formattedIdecoStocks.reduce((sum, s) => sum + s.marketCap, 0);
+
         // 合算計算
         const marginOpenInterest = jpyTotal - jpyNetTotal;
-        const newNetTotal = jpyNetTotal + usdNetAsset; // 新純資産 = JPY純資産 + USD純資産
+        const newNetTotal = jpyNetTotal + usdNetAsset + idecoTotalVal; // 新純資産 = JPY純資産 + USD純資産 + iDeco
         const newTotal = newNetTotal + marginOpenInterest; // 新総資産 = 新純資産 + 信用建玉
         const newBuyingPower = jpyBuyingPower + usdDeposit;
         const newLeverage = newNetTotal ? (newTotal / newNetTotal).toFixed(2) : '0.00';
@@ -94,8 +115,13 @@ export class UIDataAdapter {
                 return s;
             });
 
-        // 円建と外貨建の銘柄を結合し、評価額降順でソート
-        const tableRows = [...formattedJpyStocks, ...usdStocks].sort((a, b) => b.marketCap - a.marketCap);
+        // 円建と外貨建の銘柄を結合、評価額降順ソート、長過ぎる名前を省略表示
+        const tableRows = [...formattedJpyStocks, ...usdStocks, ...formattedIdecoStocks]
+            .sort((a, b) => b.marketCap - a.marketCap)
+            .map((s) => ({
+                ...s,
+                name: s.name.length > 20 ? s.name.slice(0, 17) + '...' : s.name,
+            }));
 
         // グラフデータ
         const graphData = tableRows.map((s) => ({ name: s.name, marketCap: s.marketCap }));
@@ -106,6 +132,8 @@ export class UIDataAdapter {
                 totalMarketCap: Math.floor(newTotal).toLocaleString(),
                 leverage: newLeverage,
                 buyingPower: Math.floor(newBuyingPower).toLocaleString(),
+                netTotalMarketCapValue: newNetTotal,
+                totalMarketCapValue: newTotal,
             },
             tableRows: tableRows,
             graphData: graphData,
