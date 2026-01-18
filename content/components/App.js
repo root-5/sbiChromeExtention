@@ -26,11 +26,16 @@ export function App() {
     useEffect(() => {
         // 初期データ取得
         const fetchInit = async () => {
-            const initData = await BackendClient.fetchInitialData();
+            const [initData, refreshData] = await Promise.all([
+                BackendClient.fetchInitialData(),
+                BackendClient.fetchRefreshData()
+            ]);
+
             setTradingLog(initData.tradingLog);
             setUsdAccountData(initData.usdAccountData);
             setIdecoAccountData(initData.idecoAccountData);
-            await updateData();
+            setAccountData(refreshData);
+            setLastUpdateTime(new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
             setLoading(false);
         };
         fetchInit();
