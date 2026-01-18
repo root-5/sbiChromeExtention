@@ -30,7 +30,7 @@ export class ExternalResourceFetch {
 
         const res = await fetch(chrome.runtime.getURL('env.json'));
         const env = await res.json();
-        const url = `${env.API_ENDPOINT}/closeprice?code=${codeParam}&ymd=${startDateStr}~${endDateStr}`;
+        const url = `${env.INFO_SERVER_DOMAIN}/closeprice?code=${codeParam}&ymd=${startDateStr}~${endDateStr}`;
 
         try {
             const response = await fetch(url);

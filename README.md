@@ -39,7 +39,6 @@ sbiChromeExtention/
 
 - SBI 証券のポートフォリオページから総評価額、評価損益、保有銘柄を自動抽出
 - 円建口座に加え、外貨建口座および iDeCo 口座情報の取得と合算表示 (円グラフ、サマリー) に対応
-- `content/contentScript.js` で実装
 - 一部機能は個人の株式情報サーバー [InvestSupporter](https://github.com/root-5/InvestSupporter) を利用
 
 ### リアルタイム更新

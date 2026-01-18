@@ -11,6 +11,7 @@ import { IdecoAccountFetch } from './modules/idecoAccountFetch.js';
 import { IdecoAccountParse } from './modules/idecoAccountParse.js';
 import { ExternalResourceFetch } from './modules/externalResourceFetch.js';
 import { ExternalResourceParse } from './modules/externalResourceParse.js';
+import { ExternalResourcePost } from './modules/externalResourcePost.js';
 
 // インストール時の初期化処理
 chrome.runtime.onInstalled.addListener(() => {
@@ -18,7 +19,8 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 // キャッシュ変数
-let cachedTradingLogOriginal = null; // CSVパース直後の生データ
+let cachedUsdData = null; // 外貨建口座データ
+let cachedIdecoData = null; // iDeCo口座データ
 let cachedTotaledTradingLog = null; // 集計後の取引履歴データ
 let cachedClosePriceData = null; // 終値データ
 
@@ -41,8 +43,7 @@ const MESSAGE_HANDLERS = {
 
         // 取引履歴のパース・集計・フォーマット
         const rawData = JpyAccountParse.parseTradingLogCsv(tradingLogCsv);
-        cachedTradingLogOriginal = rawData.tradingLog;
-        cachedTotaledTradingLog = JpyAccountParse.summarizeTradingLog(cachedTradingLogOriginal);
+        cachedTotaledTradingLog = JpyAccountParse.summarizeTradingLog(rawData.tradingLog);
         const formattedLog = cachedTotaledTradingLog.map((item) => ({
             ...item,
             quantity: item.quantity.toLocaleString(),
@@ -50,15 +51,15 @@ const MESSAGE_HANDLERS = {
         }));
 
         // 外貨口座パース
-        const usdData = UsdAccountParse.parseAccountJSON(usdJson);
+        cachedUsdData = UsdAccountParse.parseAccountJSON(usdJson);
 
         // iDeCo 口座パース
-        const idecoData = idecoHtml ? IdecoAccountParse.parseAccountHTML(idecoHtml) : [];
+        cachedIdecoData = idecoHtml ? IdecoAccountParse.parseAccountHTML(idecoHtml) : [];
 
         return {
             tradingLog: formattedLog,
-            usdAccountData: usdData,
-            idecoAccountData: idecoData,
+            usdAccountData: cachedUsdData,
+            idecoAccountData: cachedIdecoData,
         };
     },
 
@@ -75,12 +76,12 @@ const MESSAGE_HANDLERS = {
         const todayExecutionData = JpyAccountParse.parseTodayExecution(todayExecutionHtml);
 
         // 3. テーブル・チャート用データ生成
-        const mergedData = {
+        const mergedJpyData = {
             buyingPower: accountData.buyingPower,
             cashBalance: accountData.cashBalance,
             stocks: portfolioData.portfolio,
         };
-        const accountViewData = JpyAccountParse.formatAccountDataForTable(mergedData);
+        const accountViewData = JpyAccountParse.formatAccountDataForTable(mergedJpyData);
 
         // 4. 現在値取得
         const codes = accountViewData.graphData.filter((d) => d.code).map((d) => d.code);
@@ -94,12 +95,6 @@ const MESSAGE_HANDLERS = {
         const currentPrices = await Promise.all(currentPricePromises);
 
         // 5. 集計後取引履歴＆終値データのキャッシュ確認・取得
-        if (!cachedTotaledTradingLog) {
-            const csv = await JpyAccountFetch.fetchTradingLogCsv();
-            const rawData = JpyAccountParse.parseTradingLogCsv(csv);
-            cachedTradingLogOriginal = rawData.tradingLog;
-            cachedTotaledTradingLog = JpyAccountParse.summarizeTradingLog(cachedTradingLogOriginal);
-        }
         if (!cachedClosePriceData) {
             const stockCodes = [...new Set(cachedTotaledTradingLog.map((trade) => trade.code).filter(Boolean))];
             if (stockCodes.length > 0) {
@@ -121,6 +116,19 @@ const MESSAGE_HANDLERS = {
 
         // 7. 価格変動ピボットテーブルの計算
         const priceChangePivot = ExternalResourceParse.calculatePriceChangePivot(currentPrices, cachedTotaledTradingLog, cachedClosePriceData);
+
+        // 8. 各情報を外部サーバーへ送信（エラーは無視して続行）
+        const mergedAllData = {
+            buyingPower: accountData.buyingPower,
+            cashBalance: accountData.cashBalance,
+            stocks: [...portfolioData.portfolio, ...cachedUsdData.stocks, ...cachedIdecoData],
+        };
+        const postData = {
+            accountData: mergedAllData,
+            tradingLog: [...processedTodayExecutions, ...cachedTotaledTradingLog],
+        };
+        console.log(postData);
+        ExternalResourcePost.postAccountData(postData);
 
         // すべてまとめて返す
         return {
