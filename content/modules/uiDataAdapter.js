@@ -71,23 +71,7 @@ export class UIDataAdapter {
 
         // iDeCoデータの集計
         const idecoStocks = idecoAccountData || [];
-        const formattedIdecoStocks = idecoStocks.map((s) => {
-            const marketCap = parseNum(s.marketCap);
-            const profitLoss = parseNum(s.profitAndLoss);
-            const cost = marketCap - profitLoss;
-            return {
-                name: s.productName,
-                code: '-',
-                quantity: 0, // 数量取得不可
-                price: 0, // 単価取得不可
-                marketCap: marketCap,
-                profitLoss: profitLoss,
-                profitLossRate: cost ? (profitLoss / cost) * 100 : 0,
-                depositType: 'iDeCo',
-                currencyType: '円建',
-            };
-        });
-        const idecoTotalVal = formattedIdecoStocks.reduce((sum, s) => sum + s.marketCap, 0);
+        const idecoTotalVal = idecoStocks.reduce((sum, s) => sum + s.marketCap, 0);
 
         // 合算計算
         const marginOpenInterest = jpyTotal - jpyNetTotal;
@@ -97,26 +81,16 @@ export class UIDataAdapter {
         const newLeverage = newNetTotal ? (newTotal / newNetTotal).toFixed(2) : '0.00';
 
         // 株式リスト結合＆ソート（評価額降順）
-        const formattedJpyStocks = jpyStocks
-            .map((s) => ({
-                name: s.name,
-                code: s.code,
-                quantity: parseNum(s.quantityText || s.quantity),
-                price: parseNum(s.currentPriceText || s.currentPrice || s.price),
-                marketCap: parseNum(s.marketCapText || s.marketCap),
-                profitLoss: parseNum(s.profitLossText || s.profitAndLoss),
-                profitLossRate: 0,
-                depositType: '円建',
-                currencyType: '円建',
-            }))
-            .map((s) => {
-                const cost = s.marketCap - s.profitLoss;
-                s.profitLossRate = cost ? (s.profitLoss / cost) * 100 : 0;
-                return s;
-            });
+        const formattedJpyStocks = jpyStocks.map((s) => ({
+            ...s,
+            currentPrice: parseNum(s.currentPriceText || s.currentPrice),
+            marketCap: parseNum(s.marketCapText || s.marketCap),
+            profitAndLoss: parseNum(s.profitAndLossText || s.profitAndLoss),
+            profitRate: parseNum(s.profitRate !== undefined ? s.profitRate : s.profitAndLossRate),
+        }));
 
         // 円建・外貨建・iDeCo の銘柄を結合、評価額降順ソート、長過ぎる名前を省略表示
-        const tableRows = [...formattedJpyStocks, ...usdStocks, ...formattedIdecoStocks]
+        const tableRows = [...formattedJpyStocks, ...usdStocks, ...idecoStocks]
             .sort((a, b) => b.marketCap - a.marketCap)
             .map((s) => ({
                 ...s,

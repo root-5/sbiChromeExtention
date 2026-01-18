@@ -450,8 +450,9 @@ export class JpyAccountParse {
 
             let profitAndLossRateText = '-';
             let profitAndLossDiffText = '-';
+            let profitRate = 0;
             if (item.buyPrice && item.quantity) {
-                const profitRate = (item.profitAndLoss / (item.buyPrice * item.quantity)) * 100;
+                profitRate = (item.profitAndLoss / (item.buyPrice * item.quantity)) * 100;
                 profitAndLossRateText = `${profitRate >= 0 ? '+' : ''}${profitRate.toFixed(2)}`;
                 profitAndLossDiffText = `${item.profitAndLoss >= 0 ? '+' : ''}${item.profitAndLoss.toLocaleString()}`;
             }
@@ -472,6 +473,10 @@ export class JpyAccountParse {
                 marketCap: item.marketCap,
                 marketCapText: item.marketCap.toLocaleString(),
                 profitAndLoss: item.profitAndLoss,
+                profitRate: profitRate, // 数値として追加
+                depositType: item.depositType || '特定',
+                currencyType: item.currencyType || '円建',
+                marginType: item.marginType || '現物',
             };
         });
 

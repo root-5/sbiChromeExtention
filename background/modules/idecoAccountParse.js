@@ -41,15 +41,22 @@ export class IdecoAccountParse {
         const idecoArray = [];
         for (let i = 0; i < filteredSquareArray.length; i++) {
             const row = filteredSquareArray[i];
+            const marketCap = parseFloat(row[2].replace(/,/g, ''));
+            const profitAndLoss = parseFloat(row[3].replace(/,/g, ''));
+            const cost = marketCap - profitAndLoss;
+
             idecoArray.push({
                 currencyType: '円建',
                 depositType: 'iDeCo',
                 marginType: '現物',
-                productType: row[0],
-                productName: row[1],
-                buyPrice: row[2] - row[3],
-                marketCap: row[2],
-                profitAndLoss: row[3],
+                code: '-',
+                name: row[1],
+                quantity: 1,
+                buyPrice: cost,
+                currentPrice: 1,
+                marketCap: marketCap,
+                profitAndLoss: profitAndLoss,
+                profitRate: cost ? (profitAndLoss / cost) * 100 : 0,
             });
         }
 
