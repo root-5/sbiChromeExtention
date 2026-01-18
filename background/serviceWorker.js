@@ -23,6 +23,7 @@ let cachedUsdData = null; // 外貨建口座データ
 let cachedIdecoData = null; // iDeCo口座データ
 let cachedTotaledTradingLog = null; // 集計後の取引履歴データ
 let cachedClosePriceData = null; // 終値データ
+let postData = null; // 送信データ
 
 // メッセージハンドラ定義
 const MESSAGE_HANDLERS = {
@@ -117,18 +118,20 @@ const MESSAGE_HANDLERS = {
         // 7. 価格変動ピボットテーブルの計算
         const priceChangePivot = ExternalResourceParse.calculatePriceChangePivot(currentPrices, cachedTotaledTradingLog, cachedClosePriceData);
 
-        // 8. 各情報を外部サーバーへ送信（エラーは無視して続行）
+        // 8. 内容が変化した場合のみ、各情報を外部サーバーへ送信
         const mergedAllData = {
             buyingPower: accountData.buyingPower,
             cashBalance: accountData.cashBalance,
             stocks: [...portfolioData.portfolio, ...cachedUsdData.stocks, ...cachedIdecoData],
         };
-        const postData = {
+        const newPostData = {
             accountData: mergedAllData,
             tradingLog: [...processedTodayExecutions, ...cachedTotaledTradingLog],
         };
-        console.log(postData);
-        ExternalResourcePost.postAccountData(postData);
+        if (JSON.stringify(newPostData) !== JSON.stringify(postData)) {
+            postData = newPostData;
+            ExternalResourcePost.postAccountData(postData);
+        }
 
         // すべてまとめて返す
         return {

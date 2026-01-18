@@ -164,7 +164,7 @@ export class JpyAccountParse {
                                 dayChange: parseFloat(fields[8].replace(/\+/g, '')),
                                 profitAndLoss: parseFloat(fields[10]),
                                 profitRate: parseFloat(fields[11]),
-                                marketCap: parseFloat(fields[12]),
+                                marketCap: parseInt(fields[5]) * parseFloat(fields[7]), // parseInt(fields[12]) は建代金であり評価額ではない！
                                 marginType: '信用',
                             });
                         }

@@ -53,7 +53,7 @@ export class IdecoAccountParse {
                 name: row[1],
                 quantity: 1,
                 buyPrice: cost,
-                currentPrice: 1,
+                currentPrice: marketCap,
                 marketCap: marketCap,
                 profitAndLoss: profitAndLoss,
                 profitRate: cost ? (profitAndLoss / cost) * 100 : 0,
