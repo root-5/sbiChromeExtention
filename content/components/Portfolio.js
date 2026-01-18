@@ -51,7 +51,7 @@ export function PortfolioComp({ accountViewData }) {
                                     <td class="${cellPad}">${item.label}</td>
                                     <td class="${cellPad} text-right">${item.diff}</td>
                                 </tr>
-                            `
+                            `,
                         )}
                     </tbody>
                 </table>

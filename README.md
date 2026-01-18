@@ -12,21 +12,24 @@ Manifest V3 に準拠し、サービスワーカーを使用してバックグ�
 
 ```text
 sbiChromeExtention/
-├── manifest.json               # 拡張機能の設定ファイル（Manifest V3）
 ├── background/
-│   └── serviceWorker.js        # バックグラウンド処理用サービスワーカー、データの取得担当
+│   ├── modules/                # ロジックモジュール
+│   │   ├── ~Fetch.js           # データ取得ロジック
+│   │   ├── ~Parse.js           # 取得データ解析ロジック
+│   └── serviceWorker.js        # バックグラウンド処理用サービスワーカー、取得整形したデータの管理・返却など
 ├── content/
-│   ├── components/             # Preactコンポーネント
+│   ├── components/             # Preact コンポーネント
 │   ├── modules/                # ロジックモジュール
 │   ├── utils/                  # ユーティリティ (Preactアダプター等)
-│   ├── contentScript.js        # エントリーポイント
-│   └── contentStyles.css       # スタイル定義
-├── icons/                      # 拡張機能のアイコン
+│   ├── contentScript.js        # Preact エントリーポイント
+│   └── contentStyles.css       # SBI デフォルトスタイルに対する定義 (コンポーネントのスタイルは components 内で定義)
 ├── libs/                       # ライブラリ (Preact, htm, Chart.js)
-└── init.js                     # ES Modules読み込み用ローダー
+├── icons/                      # 拡張機能のアイコン
+├── manifest.json               # 拡張機能の設定ファイル（Manifest V3）
+└── scriptLoader.js             # ES Modules読み込み用ローダー
 ```
 
-## テクノロジー
+## 使用技術
 
 - Manifest V3: 最新の Chrome 拡張機能仕様に準拠
 - [Preact](https://preactjs.com/?lang=ja)

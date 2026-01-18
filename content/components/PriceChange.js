@@ -45,7 +45,7 @@ export function PriceChangeComp({ priceChangePivot }) {
                                 () => html`
                                     <th class="${cellPad} py-2 text-sm">変化率</th>
                                     <th class="${cellPad} py-2 text-sm">売買数</th>
-                                `
+                                `,
                             )}
                         </tr>
                     </thead>
@@ -76,7 +76,7 @@ export function PriceChangeComp({ priceChangePivot }) {
                                         `;
                                     })}
                                 </tr>
-                            `
+                            `,
                         )}
                     </tbody>
                 </table>

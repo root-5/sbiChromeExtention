@@ -26,10 +26,7 @@ export function App() {
     useEffect(() => {
         // 初期データ取得
         const fetchInit = async () => {
-            const [initData, refreshData] = await Promise.all([
-                BackendClient.fetchInitialData(),
-                BackendClient.fetchRefreshData()
-            ]);
+            const [initData, refreshData] = await Promise.all([BackendClient.fetchInitialData(), BackendClient.fetchRefreshData()]);
 
             setTradingLog(initData.tradingLog);
             setUsdAccountData(initData.usdAccountData);
@@ -69,7 +66,7 @@ export function App() {
         setLastUpdateTime(new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
     };
 
-    // UI データ準備 (JPY)
+    // UI データ準備 (円口座)
     const uiData = useMemo(() => {
         if (!accountData) return null;
         return UIDataAdapter.preparePortfolioData(accountData.accountViewData);
@@ -94,12 +91,12 @@ export function App() {
         >
             <div class="flex flex-nowrap justify-between gap-8 h-8 items-center mb-4">
                 <div class="flex items-center gap-4">
-                    <h1 class="text-xl font-bold">${isAllAccountMode ? '全口座ポートフォリオ' : '日本円建口座ポートフォリオ'}</h1>
+                    <h1 class="text-xl font-bold">${isAllAccountMode ? '全口座ポートフォリオ' : '円口座ポートフォリオ'}</h1>
                     <button
                         onClick=${() => setIsAllAccountMode(!isAllAccountMode)}
                         class="px-3 py-1 text-white rounded hover:opacity-80 transition text-xs ${isAllAccountMode ? 'bg-green-700' : 'bg-blue-700'}"
                     >
-                        ${isAllAccountMode ? '円建のみ表示へ' : '全口座表示へ'}
+                        ${isAllAccountMode ? '円口座表示へ' : '全口座表示へ'}
                     </button>
                     ${!usdAccountData && !loading ? html`<span class="text-xs text-red-500">(外貨データ未取得)</span>` : ''}
                 </div>
