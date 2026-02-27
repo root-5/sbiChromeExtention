@@ -25,51 +25,37 @@ let cachedTotaledTradingLog = null; // 集計後の取引履歴データ
 let cachedClosePriceData = null; // 終値データ
 let postData = null; // 送信データ
 
-/**
- * キャッシュデータが存在しない場合に再取得を行う
- * (Service Workerの再起動後などに対応)
- */
-async function ensureCachedData() {
-    if (cachedTotaledTradingLog && cachedUsdData && cachedIdecoData) {
-        return;
-    }
-
-    // 並行して実行
-    const [tradingLogCsv, usdJson, idecoHtml] = await Promise.all([
-        JpyAccountFetch.fetchTradingLogCsv(),
-        UsdAccountFetch.fetchAccountAPI().catch((e) => {
-            return {}; // 失敗時も空オブジェクトで続行、緊急時の全体停止を避けるため
-        }),
-        IdecoAccountFetch.fetchAccountAPI().catch((e) => {
-            return ''; // 失敗時も空文字列で続行、緊急時の全体停止を避けるため
-        }),
-    ]);
-
-    // 取引履歴のパース・集計
-    const rawData = JpyAccountParse.parseTradingLogCsv(tradingLogCsv);
-    cachedTotaledTradingLog = JpyAccountParse.summarizeTradingLog(rawData.tradingLog);
-
-    // 外貨口座パース
-    cachedUsdData = UsdAccountParse.parseAccountJSON(usdJson);
-
-    // iDeCo 口座パース
-    cachedIdecoData = idecoHtml ? IdecoAccountParse.parseAccountHTML(idecoHtml) : [];
-}
-
 // メッセージハンドラ定義
 const MESSAGE_HANDLERS = {
     /**
      * 初回データ取得（取引履歴、および iDeCo/外貨建口座情報）
      */
     GET_INITIAL_DATA: async () => {
-        await ensureCachedData();
+        // 並行して実行
+        const [tradingLogCsv, usdJson, idecoHtml] = await Promise.all([
+            JpyAccountFetch.fetchTradingLogCsv(),
+            UsdAccountFetch.fetchAccountAPI().catch((e) => {
+                return {}; // 失敗時も空オブジェクトで続行、緊急時の全体停止を避けるため
+            }),
+            IdecoAccountFetch.fetchAccountAPI().catch((e) => {
+                return ''; // 失敗時も空文字列で続行、緊急時の全体停止を避けるため
+            }),
+        ]);
 
-        // フォーマット
+        // 取引履歴のパース・集計・フォーマット
+        const rawData = JpyAccountParse.parseTradingLogCsv(tradingLogCsv);
+        cachedTotaledTradingLog = JpyAccountParse.summarizeTradingLog(rawData.tradingLog);
         const formattedLog = cachedTotaledTradingLog.map((item) => ({
             ...item,
             quantity: item.quantity.toLocaleString(),
             price: Math.floor(item.price).toLocaleString(),
         }));
+
+        // 外貨口座パース
+        cachedUsdData = UsdAccountParse.parseAccountJSON(usdJson);
+
+        // iDeCo 口座パース
+        cachedIdecoData = idecoHtml ? IdecoAccountParse.parseAccountHTML(idecoHtml) : [];
 
         return {
             tradingLog: formattedLog,
@@ -82,8 +68,6 @@ const MESSAGE_HANDLERS = {
      * 定期更新データ取得（口座情報、ポートフォリオ、当日約定、株価等）
      */
     GET_REFRESH_DATA: async () => {
-        await ensureCachedData();
-
         // 1. 各種データ取得
         const [accountHtml, portfolioCsv, todayExecutionHtml] = await Promise.all([JpyAccountFetch.fetchAccountPage(), JpyAccountFetch.fetchPortfolioCSV(), JpyAccountFetch.fetchTodayExecutionPage()]);
 
