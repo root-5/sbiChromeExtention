@@ -98,7 +98,8 @@ export class ExternalResourceParse {
             dailyTrades.forEach((trade) => {
                 const currentPrice = priceMap.get(trade.code);
                 const quantity = trade.tradeType === '買' ? trade.quantity : -trade.quantity;
-                let ratio = 0;
+                // 現在価格が取れない場合（保有解消済み等）は null を設定し、0との区別を明示する
+                let ratio = null;
                 if (currentPrice && trade.price) {
                     ratio = ((currentPrice - trade.price) / currentPrice) * 100;
                 }
@@ -135,7 +136,8 @@ export class ExternalResourceParse {
                     return { code: stock.code, name: stock.name, quantity: 0, ratio };
                 }
 
-                return { code: stock.code, name: stock.name, quantity: 0, ratio: 0 };
+                // 終値・現在価格どちらかが取得できない場合は null を設定する
+                return { code: stock.code, name: stock.name, quantity: 0, ratio: null };
             });
 
             return {

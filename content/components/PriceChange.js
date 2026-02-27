@@ -64,14 +64,16 @@ export function PriceChangeComp({ priceChangePivot }) {
                                             `;
                                         }
 
-                                        const ratioVal = parseFloat(itemData.ratio) || 0;
-                                        const ratioText = ratioVal.toFixed(2);
-                                        const ratioClass = ratioVal > 0 ? 'text-green-600 font-semibold' : ratioVal < 0 ? 'text-red-600 font-semibold' : '';
+                                        // ratio が null の場合は現在価格が取得できなかったことを意味する
+                                        const ratioVal = itemData.ratio;
+                                        const hasRatio = ratioVal !== null && ratioVal !== undefined;
+                                        const ratioText = hasRatio ? parseFloat(ratioVal).toFixed(2) : null;
+                                        const ratioClass = hasRatio && ratioVal > 0 ? 'text-green-600 font-semibold' : hasRatio && ratioVal < 0 ? 'text-red-600 font-semibold' : '';
 
                                         const quantityText = itemData.quantity ? Number(itemData.quantity).toLocaleString() : '-';
 
                                         return html`
-                                            <td class="${cellPad} py-3 text-right ${ratioClass}">${ratioText}%</td>
+                                            <td class="${cellPad} py-3 text-right ${ratioClass}">${hasRatio ? `${ratioText}%` : '-'}</td>
                                             <td class="${cellPad} py-3 text-right">${quantityText}</td>
                                         `;
                                     })}

@@ -85,7 +85,11 @@ const MESSAGE_HANDLERS = {
         const accountViewData = JpyAccountParse.formatAccountDataForTable(mergedJpyData);
 
         // 4. 現在値取得
-        const codes = accountViewData.graphData.filter((d) => d.code).map((d) => d.code);
+        // 保有中の銘柄に加え、取引履歴に登場する銘柄も対象とする
+        // （保有中でない銘柄の変化率を正しく計算するために現在価格が必要なため）
+        const portfolioCodes = accountViewData.graphData.filter((d) => d.code).map((d) => d.code);
+        const tradingLogCodes = cachedTotaledTradingLog.map((trade) => trade.code).filter(Boolean);
+        const codes = [...new Set([...portfolioCodes, ...tradingLogCodes])];
         const currentPricePromises = codes.map(async (code) => {
             const result = await ExternalResourceFetch.fetchCurrentPriceHTML(code);
             return {
