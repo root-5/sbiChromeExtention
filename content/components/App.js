@@ -81,8 +81,18 @@ export function App() {
     // 取引履歴と当日約定をマージしてメモ化
     const mergedTradingLog = useMemo(() => {
         if (!accountData) return tradingLog;
-        return [...tradingLog, ...accountData.todayExecutions];
-    }, [accountData]);
+        const normalizeDate = (dateText) => String(dateText || '').replace(/\D/g, '');
+
+        return [...tradingLog, ...accountData.todayExecutions].sort((a, b) => {
+            const dateCompare = normalizeDate(b.date).localeCompare(normalizeDate(a.date));
+            if (dateCompare !== 0) return dateCompare;
+
+            const codeCompare = String(a.code || '').localeCompare(String(b.code || ''));
+            if (codeCompare !== 0) return codeCompare;
+
+            return String(a.tradeType || '').localeCompare(String(b.tradeType || ''));
+        });
+    }, [accountData, tradingLog]);
 
     // レンダリング
     if (loading) return html`<h1>Now Loading ...</h1>`;

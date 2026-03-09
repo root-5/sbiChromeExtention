@@ -73,8 +73,8 @@ export class JpyAccountFetch {
 
         try {
             const res = await fetch('https://site3.sbisec.co.jp/ETGate/?' + new URLSearchParams(formData).toString(), {
-                headers: { credentials: 'include' },
                 method: 'GET',
+                credentials: 'include',
             });
             const buffer = await res.arrayBuffer();
             return new TextDecoder('shift-jis').decode(new Uint8Array(buffer));
@@ -93,7 +93,7 @@ export class JpyAccountFetch {
         try {
             const res = await fetch(url, {
                 method: 'GET',
-                headers: { credentials: 'include' },
+                credentials: 'include',
             });
             const buffer = await res.arrayBuffer();
             return new TextDecoder('shift-jis').decode(new Uint8Array(buffer));
