@@ -25,49 +25,75 @@ let cachedTotaledTradingLog = null; // 集計後の取引履歴データ
 let cachedClosePriceData = null; // 終値データ
 let postData = null; // 送信データ
 
+// 初期化用のプロミス。複数回同時にリクエストが来ることを防ぐ
+let initialDataPromise = null;
+
 // メッセージハンドラ定義
 const MESSAGE_HANDLERS = {
     /**
      * 初回データ取得（取引履歴、および iDeCo/外貨建口座情報）
      */
     GET_INITIAL_DATA: async () => {
-        // 並行して実行
-        const [tradingLogCsv, usdJson, idecoHtml] = await Promise.all([
-            JpyAccountFetch.fetchTradingLogCsv(),
-            UsdAccountFetch.fetchAccountAPI().catch((e) => {
-                return {}; // 失敗時も空オブジェクトで続行、緊急時の全体停止を避けるため
-            }),
-            IdecoAccountFetch.fetchAccountAPI().catch((e) => {
-                return ''; // 失敗時も空文字列で続行、緊急時の全体停止を避けるため
-            }),
-        ]);
+        // すでに取得中であれば、そのプロミスを返す
+        if (initialDataPromise) {
+            return await initialDataPromise;
+        }
 
-        // 取引履歴のパース・集計・フォーマット
-        const rawData = JpyAccountParse.parseTradingLogCsv(tradingLogCsv);
-        cachedTotaledTradingLog = JpyAccountParse.summarizeTradingLog(rawData.tradingLog);
-        const formattedLog = cachedTotaledTradingLog.map((item) => ({
-            ...item,
-            quantity: item.quantity.toLocaleString(),
-            price: Math.floor(item.price).toLocaleString(),
-        }));
+        initialDataPromise = (async () => {
+            try {
+                // 並行して実行
+                const [tradingLogCsv, usdJson, idecoHtml] = await Promise.all([
+                    JpyAccountFetch.fetchTradingLogCsv(),
+                    UsdAccountFetch.fetchAccountAPI().catch((e) => {
+                        return {}; // 失敗時も空オブジェクトで続行、緊急時の全体停止を避けるため
+                    }),
+                    IdecoAccountFetch.fetchAccountAPI().catch((e) => {
+                        return ''; // 失敗時も空文字列で続行、緊急時の全体停止を避けるため
+                    }),
+                ]);
 
-        // 外貨口座パース
-        cachedUsdData = UsdAccountParse.parseAccountJSON(usdJson);
+                // 取引履歴のパース・集計・フォーマット
+                const rawData = JpyAccountParse.parseTradingLogCsv(tradingLogCsv);
+                cachedTotaledTradingLog = JpyAccountParse.summarizeTradingLog(rawData.tradingLog);
+                const formattedLog = cachedTotaledTradingLog.map((item) => ({
+                    ...item,
+                    quantity: item.quantity.toLocaleString(),
+                    price: Math.floor(item.price).toLocaleString(),
+                }));
 
-        // iDeCo 口座パース
-        cachedIdecoData = idecoHtml ? IdecoAccountParse.parseAccountHTML(idecoHtml) : [];
+                // 外貨口座パース
+                cachedUsdData = UsdAccountParse.parseAccountJSON(usdJson);
 
-        return {
-            tradingLog: formattedLog,
-            usdAccountData: cachedUsdData,
-            idecoAccountData: cachedIdecoData,
-        };
+                // iDeCo 口座パース
+                cachedIdecoData = idecoHtml ? IdecoAccountParse.parseAccountHTML(idecoHtml) : [];
+
+                return {
+                    tradingLog: formattedLog,
+                    usdAccountData: cachedUsdData,
+                    idecoAccountData: cachedIdecoData,
+                };
+            } finally {
+                // 取得完了またはエラー終了後、プロミスをクリア
+                initialDataPromise = null;
+            }
+        })();
+
+        return await initialDataPromise;
     },
 
     /**
      * 定期更新データ取得（口座情報、ポートフォリオ、当日約定、株価等）
      */
     GET_REFRESH_DATA: async () => {
+        // まだ初期データの取得が完了していない場合は待機または実行を促す
+        if (!cachedTotaledTradingLog) {
+            if (initialDataPromise) {
+                await initialDataPromise;
+            } else {
+                await MESSAGE_HANDLERS.GET_INITIAL_DATA();
+            }
+        }
+
         // 1. 各種データ取得
         const [accountHtml, portfolioCsv, todayExecutionHtml] = await Promise.all([JpyAccountFetch.fetchAccountPage(), JpyAccountFetch.fetchPortfolioCSV(), JpyAccountFetch.fetchTodayExecutionPage()]);
 
