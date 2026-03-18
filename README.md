@@ -65,6 +65,21 @@ sbiChromeExtention/
 3. ポップアップのデバッグ
    拡張機能アイコンを右クリック → 検査
 
+## CRX の生成とスマホインストール
+
+PC での利用であれば直接プロジェクトフォルダを Chrome に読み込ませる方法が簡単ですが、スマホで利用する場合は Microsoft Edge Canary の開発者モードを利用して CRX ファイルをインストールする必要があります。
+
+1. CRX を生成する: `./scripts/packageCrx.sh`
+2. dist フォルダに生成された CRX ファイルをスマホに転送
+3. 「設定」＞「Microsoft Edge について」を開き、バージョン表示部分を連打して開発者モードを有効化
+4. Microsoft Edge Canary を開き、「設定」＞「開発者向けオプション」＞「Extension install by crx」 から CRX ファイルを選択してインストール
+
+### 補足
+
+- 署名鍵は拡張機能 ID を維持するために必要です。削除すると次回生成時に別の拡張機能 ID になります。
+- Chrome 実行ファイルが標準パスに存在しない場合は、`CHROME_BIN=/path/to/google-chrome ./scripts/packageCrx.sh` のように指定してください。
+- `.pem` は秘密鍵のため、第三者に共有しないでください。
+
 ## 今後の拡張予定
 
 - [x] 基本的なファイル構造の作成
