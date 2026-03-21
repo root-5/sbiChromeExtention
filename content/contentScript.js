@@ -7,6 +7,12 @@
 import { render, html } from './utils/preact-adapter.js';
 import { App } from './components/App.js';
 
+// viewport の meta タグを追加（SPでの表示崩れ対策）
+const metaViewport = document.createElement('meta');
+metaViewport.name = 'viewport';
+metaViewport.content = 'width=device-width, initial-scale=1.0';
+document.head.appendChild(metaViewport);
+
 // メイン処理の開始
 const title = document.title;
 if (title.includes('ポートフォリオ')) {

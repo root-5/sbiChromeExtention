@@ -51,3 +51,10 @@ body > div:nth-child(1) {
     }
   }
 }
+
+/* SP時文字サイズを大きくする */
+@media (max-width: 640px) {
+  html {
+    font-size: 14px;
+  }
+}

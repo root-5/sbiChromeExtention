@@ -85,9 +85,5 @@ export function PieChartComp({ data }) {
         }
     }, [data]);
 
-    return html`
-        <div class="p-5 w-1/3 max-w-sm aspect-square max-sm:p-4">
-            <canvas ref=${canvasRef}></canvas>
-        </div>
-    `;
+    return html` <canvas ref=${canvasRef}></canvas> `;
 }
