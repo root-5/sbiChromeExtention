@@ -28,26 +28,14 @@ body
   display: none;
 }
 
-/* ヘッダーの高さを調整し、ホバー時だけ表示させるようにする */
+/* ヘッダーの高さを調整 */
 body > div:nth-child(1) > header.slc-header > nav.slc-header-nav {
   height: 4.0625em;
 }
-body > div:nth-child(1) {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 10000;
 
-  > * {
-    opacity: 0;
-  }
-
-  &:hover {
-    height: auto;
-
-    > * {
-      opacity: 1;
-    }
+/* SP時文字サイズを大きくする */
+@media (max-width: 640px) {
+  html {
+    font-size: 14px;
   }
 }
