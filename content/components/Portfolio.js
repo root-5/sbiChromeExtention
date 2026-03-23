@@ -15,9 +15,9 @@ export function PortfolioComp({ accountViewData }) {
     return html`
         <div class="flex flex-row gap-8">
             <div>
-                <h2 class="mb-1.5 text-blue-800 text-lg font-semibold">サマリー</h2>
+                <h2 class="lg:mb-1.5 text-blue-800 text-lg font-semibold">サマリー</h2>
                 <table class="border-collapse bg-white shadow-md rounded-md overflow-hidden align-middle w-fit">
-                    <thead class="text-white bg-gradient-to-br from-blue-800 to-blue-800 border-b-2 border-blue-900 whitespace-nowrap">
+                    <thead class="text-white bg-gradient-to-br from-blue-800 to-blue-800 border-t-2 border-blue-900 whitespace-nowrap">
                         <tr>
                             <th class="${cellPad}">純資産</th>
                             <th class="${cellPad}">総資産</th>
@@ -36,9 +36,9 @@ export function PortfolioComp({ accountViewData }) {
                 </table>
             </div>
             <div class="hidden sm:block">
-                <h2 class="mb-1.5 text-blue-800 text-lg font-semibold">レバレッジ管理</h2>
+                <h2 class="lg:mb-1.5 text-blue-800 text-lg font-semibold">レバレッジ管理</h2>
                 <table class="border-collapse bg-white shadow-md rounded-md overflow-hidden align-middle w-fit">
-                    <thead class="text-white bg-gradient-to-br from-blue-800 to-blue-800 border-b-2 border-blue-900 whitespace-nowrap">
+                    <thead class="text-white bg-gradient-to-br from-blue-800 to-blue-800 border-t-2 border-blue-900 whitespace-nowrap">
                         <tr>
                             <th class="${cellPad}">基準</th>
                             <th class="${cellPad}">差額</th>
@@ -59,10 +59,10 @@ export function PortfolioComp({ accountViewData }) {
         </div>
 
         <div class="w-full">
-            <h2 class="mt-8 mb-1.5 text-blue-800 text-lg font-semibold">ポートフォリオ</h2>
+            <h2 class="mt-8 lg:mb-1.5 text-blue-800 text-lg font-semibold">ポートフォリオ</h2>
             <div class="shadow-md rounded-md overflow-hidden overflow-x-auto [&::-webkit-scrollbar]:hidden">
                 <table class="border-collapse bg-white align-middle w-full">
-                    <thead class="text-white bg-gradient-to-br from-blue-800 to-blue-800 border-b-2 border-blue-900 whitespace-nowrap">
+                    <thead class="text-white bg-gradient-to-br from-blue-800 to-blue-800 border-t-2 border-blue-900 whitespace-nowrap">
                         <tr>
                             <th class="${cellPad}">コード</th>
                             <th class="${cellPad}">銘柄名</th>

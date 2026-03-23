@@ -31,10 +31,10 @@ export function PriceChangeComp({ priceChangePivot }) {
 
     return html`
         <div class="w-full md:w-[57%] mt-8">
-            <h2 class="mb-1.5 text-blue-800 text-lg font-semibold">株価変化率と売買数</h2>
+            <h2 class="lg:mb-1.5 text-blue-800 text-lg font-semibold">株価変化率と売買数</h2>
             <div class="w-full shadow-md rounded-md overflow-hidden overflow-x-auto [&::-webkit-scrollbar]:hidden">
                 <table class="border-collapse bg-white align-middle">
-                    <thead class="sticky top-0 z-10 text-white bg-gradient-to-br from-blue-800 to-blue-800 border-b-2 border-blue-900 whitespace-nowrap">
+                    <thead class="sticky top-0 z-10 text-white bg-gradient-to-br from-blue-800 to-blue-800 border-t-2 border-blue-900 whitespace-nowrap">
                         <tr>
                             <th rowspan="2" class="${cellPad} sticky left-0 z-10 bg-blue-800">コード</th>
                             <th rowspan="2" class="${cellPad} sticky left-14 z-10 bg-blue-800">銘柄名</th>

@@ -74,8 +74,8 @@ export function LeverageCalculatorComp({}) {
     }, [pulldownState.maxDrawdown, pulldownState.shockCare, pulldownState.stockType, pulldownState.drawdown]);
 
     return html`
-        <div class="mt-8">
-            <h2 class="mb-1.5 text-blue-800 text-lg font-semibold">計算ツール</h2>
+        <div class="mt-8 hidden lg:block">
+            <h2 class="lg:mb-1.5 text-blue-800 text-lg font-semibold">計算ツール</h2>
             <div class="p-4 border border-dashed border-blue-800 rounded-lg bg-blue-50 flex flex-col gap-3">
                 <h3 class="m-0 text-base text-blue-800 font-bold">レバレッジ簡易計算</h3>
                 <div class="grid grid-cols-2 gap-x-3.5 gap-y-2.5 max-md:grid-cols-1">
