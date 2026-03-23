@@ -30,7 +30,7 @@ export function PriceChangeComp({ priceChangePivot }) {
     const cellPad = 'p-2.5';
 
     return html`
-        <div class="w-[57%] mt-8">
+        <div class="w-full md:w-[57%] mt-8">
             <h2 class="mb-1.5 text-blue-800 text-lg font-semibold">株価変化率と売買数</h2>
             <div class="w-full shadow-md rounded-md overflow-hidden overflow-x-auto [&::-webkit-scrollbar]:hidden">
                 <table class="border-collapse bg-white align-middle">

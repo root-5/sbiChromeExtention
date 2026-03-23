@@ -98,9 +98,9 @@ export function App() {
     if (loading) return html`<h1>Now Loading ...</h1>`;
     return html`
         <div
-            class="relative w-[90%] max-w-7xl mx-auto my-5 p-8 bg-white text-gray-800 text-left font-['Helvetica'] text-sm align-middle border-2 border-blue-800 rounded-xl shadow-lg overflow-hidden max-lg:text-sm max-lg:m-5 max-sm:text-xs"
+            class="relative w-[95%] md:w-[90%] max-w-7xl mx-auto my-5 p-4 md:p-8 bg-white text-gray-800 text-left font-['Helvetica'] text-sm align-middle border-2 border-blue-800 rounded-xl shadow-lg overflow-hidden"
         >
-            <div class="flex flex-nowrap justify-between gap-8 h-8 items-center mb-4">
+            <div class="flex flex-wrap justify-between gap-8 items-center mb-4">
                 <div class="flex items-center gap-4">
                     <h1 class="text-xl font-bold">${isAllAccountMode ? '全口座ポートフォリオ' : '円口座ポートフォリオ'}</h1>
                     <button
@@ -120,20 +120,24 @@ export function App() {
                 </div>
             </div>
 
-            ${isAllAccountMode && allAccountUiData
+            ${isAllAccountMode
                 ? html`
-                      <div class="flex flex-nowrap justify-between gap-8">
-                          <${PieChartAllComp} data=${allAccountUiData.graphData} />
+                      <div class="flex flex-col lg:flex-row gap-8">
+                          <div class="p-5 w-full lg:w-1/3 max-w-md aspect-square max-sm:p-4">
+                              <${PieChartAllComp} data=${allAccountUiData.graphData} />
+                          </div>
                           <div>${html`<${PortfolioAllComp} accountViewData=${allAccountUiData} />`}</div>
                       </div>
                   `
                 : html`
-                      <div class="flex flex-nowrap justify-between gap-8">
-                          <${PieChartComp} data=${accountData.accountViewData.graphData} />
+                      <div class="flex flex-col lg:flex-row gap-8">
+                          <div class="p-5 w-full lg:w-1/3 max-w-md aspect-square max-sm:p-4">
+                              <${PieChartComp} data=${accountData.accountViewData.graphData} />
+                          </div>
                           <div>${html`<${PortfolioComp} accountViewData=${uiData} />`}</div>
                       </div>
 
-                      <div class="flex flex-nowrap justify-between gap-8">
+                      <div class="flex flex-wrap lg:flex-nowrap justify-between gap-8">
                           <${TradingLogComp} tradingLog=${mergedTradingLog} />
                           ${html`<${PriceChangeComp} priceChangePivot=${accountData.priceChangePivot} />`}
                       </div>
