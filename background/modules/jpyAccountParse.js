@@ -298,7 +298,7 @@ export class JpyAccountParse {
 
             const codeMatch = row[0].match(/\d{4}/);
             const code = codeMatch ? codeMatch[0] : '';
-            const name = code ? row[0].replace(code, '').trim() : row[0];
+            const name = (code ? row[0].replace(code, '').trim() : row[0]).replace(/[Ａ-Ｚａ-ｚ０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0));
             const tradeType = row[1];
 
             const dateString = row[2] || '';
