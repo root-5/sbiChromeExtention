@@ -28,8 +28,6 @@ export function App() {
         const fetchInit = async () => {
             const initData = await BackendClient.fetchInitialData();
             setTradingLog(initData.tradingLog);
-            setUsdAccountData(initData.usdAccountData);
-            setIdecoAccountData(initData.idecoAccountData);
 
             const refreshData = await BackendClient.fetchRefreshData();
             setAccountData(refreshData);
@@ -59,6 +57,16 @@ export function App() {
             clearInterval(clockTimer);
         };
     }, []);
+
+    // 全口座モード切替ハンドラ（未取得の場合のみ外貨・iDeCo 口座データを取得）
+    const handleToggleAllAccountMode = async () => {
+        if (!isAllAccountMode && !usdAccountData) {
+            const data = await BackendClient.fetchAllAccountData();
+            setUsdAccountData(data.usdAccountData);
+            setIdecoAccountData(data.idecoAccountData);
+        }
+        setIsAllAccountMode(!isAllAccountMode);
+    };
 
     // データ更新用関数
     const updateData = async () => {
@@ -104,7 +112,7 @@ export function App() {
                 <div class="flex items-center gap-4">
                     <h1 class="text-xl font-bold">${isAllAccountMode ? '全口座ポートフォリオ' : '円口座ポートフォリオ'}</h1>
                     <button
-                        onClick=${() => setIsAllAccountMode(!isAllAccountMode)}
+                        onClick=${handleToggleAllAccountMode}
                         class="px-3 py-1 text-white rounded hover:opacity-80 transition text-xs ${isAllAccountMode ? 'bg-green-700' : 'bg-blue-700'}"
                     >
                         ${isAllAccountMode ? '円口座表示へ' : '全口座表示へ'}

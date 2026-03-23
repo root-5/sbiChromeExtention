@@ -22,4 +22,15 @@ export class BackendClient {
         if (!response.success) throw new Error(`GET_REFRESH_DATA Error: ${response.error}`);
         return response.data;
     }
+
+    /**
+     * 全口座データを取得する（外貨建て・iDeCo 口座）
+     * 全口座表示モードへ切り替える際に一度だけ呼ぶ
+     * @returns {Promise<Object>} 外貨建て・iDeCo 口座データ
+     */
+    static async fetchAllAccountData() {
+        const response = await chrome.runtime.sendMessage({ type: 'GET_ALL_ACCOUNT_DATA' });
+        if (!response.success) throw new Error(`GET_ALL_ACCOUNT_DATA Error: ${response.error}`);
+        return response.data;
+    }
 }

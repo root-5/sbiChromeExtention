@@ -41,37 +41,17 @@ const MESSAGE_HANDLERS = {
 
         initialDataPromise = (async () => {
             try {
-                // 並行して実行
-                const [tradingLogCsv, usdJson, idecoHtml] = await Promise.all([
-                    JpyAccountFetch.fetchTradingLogCsv(),
-                    UsdAccountFetch.fetchAccountAPI().catch((e) => {
-                        return {}; // 失敗時も空オブジェクトで続行、緊急時の全体停止を避けるため
-                    }),
-                    IdecoAccountFetch.fetchAccountAPI().catch((e) => {
-                        return ''; // 失敗時も空文字列で続行、緊急時の全体停止を避けるため
-                    }),
-                ]);
-
-                // 取引履歴のパース・集計・フォーマット
-                const rawData = JpyAccountParse.parseTradingLogCsv(tradingLogCsv);
-                cachedTotaledTradingLog = JpyAccountParse.summarizeTradingLog(rawData.tradingLog);
+                // 取引履歴の取得・パース・集計・フォーマット
+                const tradingLogCsv = await JpyAccountFetch.fetchTradingLogCsv();
+                const parsedTradingLog = JpyAccountParse.parseTradingLogCsv(tradingLogCsv);
+                cachedTotaledTradingLog = JpyAccountParse.summarizeTradingLog(parsedTradingLog.tradingLog);
                 const formattedLog = cachedTotaledTradingLog.map((item) => ({
                     ...item,
                     quantity: item.quantity.toLocaleString(),
                     price: Math.floor(item.price).toLocaleString(),
                 }));
 
-                // 外貨口座パース
-                cachedUsdData = UsdAccountParse.parseAccountJSON(usdJson);
-
-                // iDeCo 口座パース
-                cachedIdecoData = idecoHtml ? IdecoAccountParse.parseAccountHTML(idecoHtml) : [];
-
-                return {
-                    tradingLog: formattedLog,
-                    usdAccountData: cachedUsdData,
-                    idecoAccountData: cachedIdecoData,
-                };
+                return { tradingLog: formattedLog };
             } finally {
                 // 取得完了またはエラー終了後、プロミスをクリア
                 initialDataPromise = null;
@@ -79,6 +59,16 @@ const MESSAGE_HANDLERS = {
         })();
 
         return await initialDataPromise;
+    },
+
+    /**
+     * 全口座モード切替時に一度だけ呼ばれる（外貨建て・iDeCo 口座取得）
+     */
+    GET_ALL_ACCOUNT_DATA: async () => {
+        const [usdJson, idecoHtml] = await Promise.all([UsdAccountFetch.fetchAccountAPI(), IdecoAccountFetch.fetchAccountAPI()]);
+        cachedUsdData = UsdAccountParse.parseAccountJSON(usdJson);
+        cachedIdecoData = idecoHtml ? IdecoAccountParse.parseAccountHTML(idecoHtml) : [];
+        return { usdAccountData: cachedUsdData, idecoAccountData: cachedIdecoData };
     },
 
     /**
@@ -152,7 +142,7 @@ const MESSAGE_HANDLERS = {
         const mergedAllData = {
             buyingPower: accountData.buyingPower,
             cashBalance: accountData.cashBalance,
-            stocks: [...portfolioData.portfolio, ...cachedUsdData.stocks, ...cachedIdecoData],
+            stocks: [...portfolioData.portfolio, ...(cachedUsdData?.stocks ?? []), ...(cachedIdecoData ?? [])],
         };
         const newPostData = {
             accountData: mergedAllData,
