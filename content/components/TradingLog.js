@@ -5,14 +5,14 @@
 import { html } from '../utils/preact-adapter.js';
 
 export function TradingLogComp({ tradingLog }) {
-    const cellPad = 'p-3 max-md:p-2.5 max-sm:p-2';
+    const cellPad = 'p-2.5 whitespace-nowrap';
 
     return html`
-        <div class="w-[43%] mt-8">
+        <div class="w-full lg:w-fit mt-8">
             <h2 class="mb-1.5 text-blue-800 text-lg font-semibold">取引履歴</h2>
-            <div class="w-fit max-h-96 overflow-y-auto shadow-md rounded-md overflow-hidden [&::-webkit-scrollbar]:hidden">
+            <div class="w-full lg:w-fit max-h-96 overflow-x-auto overflow-y-auto shadow-md rounded-md overflow-hidden [&::-webkit-scrollbar]:hidden">
                 <table class="border-collapse bg-white align-middle w-auto">
-                    <thead class="sticky top-0 z-10 text-white bg-gradient-to-br from-blue-800 to-blue-800 border-b-2 border-blue-900 whitespace-nowrap">
+                    <thead class="sticky top-0 z-10 text-white bg-gradient-to-br from-blue-800 to-blue-800 border-b-2 border-blue-900">
                         <tr>
                             <th class="${cellPad}">日付</th>
                             <th class="${cellPad}">コード</th>

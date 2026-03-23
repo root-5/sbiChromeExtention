@@ -31,10 +31,14 @@ body
 /* ヘッダーの高さを調整 */
 body > div:nth-child(1) > header.slc-header > nav.slc-header-nav {
   height: 4.0625em;
+  display: block;
 }
 
 /* SP時文字サイズを大きくする */
 @media (max-width: 640px) {
+  body > div:nth-child(1) > header.slc-header > nav.slc-header-nav {
+    display: none;
+  }
   html {
     font-size: 14px;
   }

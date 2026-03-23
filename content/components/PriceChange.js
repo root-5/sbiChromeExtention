@@ -36,8 +36,8 @@ export function PriceChangeComp({ priceChangePivot }) {
                 <table class="border-collapse bg-white align-middle">
                     <thead class="sticky top-0 z-10 text-white bg-gradient-to-br from-blue-800 to-blue-800 border-b-2 border-blue-900 whitespace-nowrap">
                         <tr>
-                            <th rowspan="2" class="${cellPad} text-base sticky left-0 z-10 bg-blue-800">コード</th>
-                            <th rowspan="2" class="${cellPad} text-base sticky left-14 z-10 bg-blue-800">銘柄名</th>
+                            <th rowspan="2" class="${cellPad} sticky left-0 z-10 bg-blue-800">コード</th>
+                            <th rowspan="2" class="${cellPad} sticky left-14 z-10 bg-blue-800">銘柄名</th>
                             ${dates.map((date) => html`<th colspan="2" class="${cellPad} text-sm pt-3.5 pb-2.5">${date}</th>`)}
                         </tr>
                         <tr>

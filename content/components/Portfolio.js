@@ -10,10 +10,10 @@ export function PortfolioComp({ accountViewData }) {
     const { totalProfit: totalProfitClass } = classData;
 
     // Helper for cell padding
-    const cellPad = 'p-3 max-md:p-2.5 max-sm:p-2';
+    const cellPad = 'p-2.5';
 
     return html`
-        <div class="flex flex-col sm:flex-row gap-8">
+        <div class="flex flex-row gap-8">
             <div>
                 <h2 class="mb-1.5 text-blue-800 text-lg font-semibold">サマリー</h2>
                 <table class="border-collapse bg-white shadow-md rounded-md overflow-hidden align-middle w-fit">
@@ -35,7 +35,7 @@ export function PortfolioComp({ accountViewData }) {
                     </tbody>
                 </table>
             </div>
-            <div>
+            <div class="hidden sm:block">
                 <h2 class="mb-1.5 text-blue-800 text-lg font-semibold">レバレッジ管理</h2>
                 <table class="border-collapse bg-white shadow-md rounded-md overflow-hidden align-middle w-fit">
                     <thead class="text-white bg-gradient-to-br from-blue-800 to-blue-800 border-b-2 border-blue-900 whitespace-nowrap">
@@ -87,9 +87,8 @@ export function PortfolioComp({ accountViewData }) {
                                     <td class="${cellPad} text-right">${item.quantity}</td>
                                     <td class="${cellPad} text-right">${item.buyPrice}</td>
                                     <td class="${cellPad} text-right">${item.currentPrice}</td>
-                                    <td class="${cellPad} text-right font-semibold">
-                                        <span class="inline-block w-16 text-right ${dayChangeClass}">${item.dayChangeRate}</span>
-                                        <span class="text-xs ml-1 ${dayChangeClass}">%</span>
+                                    <td class="${cellPad} text-right font-semibold whitespace-nowrap">
+                                        <span class="inline-block w-16 text-right ${dayChangeClass}">${item.dayChangeRate}</span><span class="text-xs ml-1 ${dayChangeClass}">%</span>
                                     </td>
                                     <td class="${cellPad} text-right font-semibold">
                                         <span class="${profitClass}">${item.profitAndLossDiff}</span>
