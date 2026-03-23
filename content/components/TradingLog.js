@@ -10,12 +10,12 @@ export function TradingLogComp({ tradingLog }) {
     return html`
         <div class="w-full lg:w-fit mt-8">
             <h2 class="lg:mb-1.5 text-blue-800 text-lg font-semibold">取引履歴</h2>
-            <div class="w-full lg:w-fit max-h-96 overflow-x-auto overflow-y-auto shadow-md rounded-md overflow-hidden [&::-webkit-scrollbar]:hidden">
+            <div class="w-fit lg:w-fit max-w-full max-h-96 overflow-x-auto overflow-y-auto shadow-md rounded-md overflow-hidden [&::-webkit-scrollbar]:hidden">
                 <table class="border-collapse bg-white align-middle w-auto">
                     <thead class="sticky top-0 z-10 text-white bg-gradient-to-br from-blue-800 to-blue-800 border-t-2 border-blue-900">
                         <tr>
                             <th class="${cellPad}">日付</th>
-                            <th class="${cellPad}">コード</th>
+                            <th class="${cellPad} hidden lg:block">コード</th>
                             <th class="${cellPad}">銘柄名</th>
                             <th class="${cellPad}">取引</th>
                             <th class="${cellPad}">株数</th>
@@ -28,7 +28,7 @@ export function TradingLogComp({ tradingLog }) {
                             return html`
                                 <tr class="border-b border-gray-200 transition-colors duration-200 ease-in-out hover:bg-gray-50">
                                     <td class="${cellPad}">${item.date}</td>
-                                    <td class="${cellPad} text-blue-800 text-center">${item.code}</td>
+                                    <td class="${cellPad} text-blue-800 text-center hidden lg:block">${item.code}</td>
                                     <td class="${cellPad}">${item.name}</td>
                                     <td class="${cellPad} text-center font-semibold ${tradeTypeClass}">${item.tradeType}</td>
                                     <td class="${cellPad} text-right">${item.quantity}</td>

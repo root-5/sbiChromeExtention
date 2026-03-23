@@ -36,8 +36,8 @@ export function PriceChangeComp({ priceChangePivot }) {
                 <table class="border-collapse bg-white align-middle">
                     <thead class="sticky top-0 z-10 text-white bg-gradient-to-br from-blue-800 to-blue-800 border-t-2 border-blue-900 whitespace-nowrap">
                         <tr>
-                            <th rowspan="2" class="${cellPad} sticky left-0 z-10 bg-blue-800">コード</th>
-                            <th rowspan="2" class="${cellPad} sticky left-14 z-10 bg-blue-800">銘柄名</th>
+                            <th rowspan="2" class="${cellPad} sticky left-0 z-10 bg-blue-800 hidden lg:block">コード</th>
+                            <th rowspan="2" class="${cellPad} sticky left-0 lg:left-14 z-10 bg-blue-800">銘柄名</th>
                             ${dates.map((date) => html`<th colspan="2" class="${cellPad} text-sm pt-3.5 pb-2.5">${date}</th>`)}
                         </tr>
                         <tr>
@@ -53,8 +53,8 @@ export function PriceChangeComp({ priceChangePivot }) {
                         ${stocks.map(
                             (stock) => html`
                                 <tr class="border-b border-gray-200 transition-colors duration-200 ease-in-out hover:bg-gray-50">
-                                    <td class="${cellPad} text-blue-800 text-center bg-white sticky left-0 z-[5]">${stock.code}</td>
-                                    <td class="${cellPad} bg-white sticky left-14 z-[5] whitespace-nowrap">${stock.name}</td>
+                                    <td class="${cellPad} text-blue-800 text-center bg-white sticky left-0 z-[5] hidden lg:block">${stock.code}</td>
+                                    <td class="${cellPad} bg-white sticky left-0 lg:left-14 z-[5] whitespace-nowrap">${stock.name}</td>
                                     ${dates.map((date) => {
                                         const itemData = dataMap.get(`${stock.code}_${date}`);
                                         if (!itemData) {

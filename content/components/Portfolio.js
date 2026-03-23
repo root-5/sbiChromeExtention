@@ -64,7 +64,7 @@ export function PortfolioComp({ accountViewData }) {
                 <table class="border-collapse bg-white align-middle w-full">
                     <thead class="text-white bg-gradient-to-br from-blue-800 to-blue-800 border-t-2 border-blue-900 whitespace-nowrap">
                         <tr>
-                            <th class="${cellPad}">コード</th>
+                            <th class="${cellPad} hidden lg:block">コード</th>
                             <th class="${cellPad}">銘柄名</th>
                             <th class="${cellPad}">株数</th>
                             <th class="${cellPad}">取得価格</th>
@@ -82,7 +82,7 @@ export function PortfolioComp({ accountViewData }) {
 
                             return html`
                                 <tr class="border-b border-gray-200 transition-colors duration-200 ease-in-out hover:bg-gray-50 ${rowClass}">
-                                    <td class="${cellPad} text-blue-800 text-center">${item.code}</td>
+                                    <td class="${cellPad} text-blue-800 text-center hidden lg:block">${item.code}</td>
                                     <td class="${cellPad}">${item.name}</td>
                                     <td class="${cellPad} text-right">${item.quantity}</td>
                                     <td class="${cellPad} text-right">${item.buyPrice}</td>
@@ -100,7 +100,8 @@ export function PortfolioComp({ accountViewData }) {
                     </tbody>
                     <tfoot class="bg-gray-50 border-t-2 border-blue-800">
                         <tr>
-                            <td colspan="6" class="font-bold p-3 text-blue-800">合計</td>
+                            <td colspan="1" class="hidden lg:block"></td>
+                            <td colspan="5" class="font-bold p-3 text-blue-800">合計</td>
                             <td class="${cellPad} font-bold text-blue-800 text-right ${totalProfitClass === 'positive' ? 'text-green-600' : totalProfitClass === 'negative' ? 'text-red-600' : ''}">
                                 ${totalProfit}
                             </td>
