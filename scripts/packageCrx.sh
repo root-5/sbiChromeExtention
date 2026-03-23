@@ -5,7 +5,6 @@ scriptDir="$(cd "$(dirname "$0")" && pwd)"
 repoRoot="$(cd "$scriptDir/.." && pwd)"
 packageName="sbiChromeExtention"
 outputDir="$repoRoot/dist"
-keyDir="$repoRoot/.keys"
 chromeBin="${CHROME_BIN:-}"
 
 if [[ -z "$chromeBin" ]]; then
@@ -22,7 +21,7 @@ if [[ -z "$chromeBin" ]]; then
     exit 1
 fi
 
-mkdir -p "$outputDir" "$keyDir"
+mkdir -p "$outputDir"
 
 workDir="$(mktemp -d)"
 cleanup() {
@@ -40,14 +39,8 @@ rsync -a \
     --exclude '.DS_Store' \
     "$repoRoot/" "$stagingDir/"
 
-if [[ -f "$keyDir/$packageName.pem" ]]; then
-    "$chromeBin" --no-message-box --pack-extension="$stagingDir" --pack-extension-key="$keyDir/$packageName.pem"
-else
-    "$chromeBin" --no-message-box --pack-extension="$stagingDir"
-    mv "$workDir/$packageName.pem" "$keyDir/$packageName.pem"
-fi
+"$chromeBin" --no-message-box --pack-extension="$stagingDir"
 
 mv -f "$workDir/$packageName.crx" "$outputDir/$packageName.crx"
 
 echo "CRX を生成しました: $outputDir/$packageName.crx"
-echo "署名鍵を保存しました: $keyDir/$packageName.pem"
