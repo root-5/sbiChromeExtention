@@ -7,6 +7,12 @@
 import { render, html } from './utils/preact-adapter.js';
 import { App } from './components/App.js';
 
+// リダイレクト
+const url = window.location.href;
+if (url === 'https://site3.sbisec.co.jp/ETGate/') {
+    window.location.href = 'https://site3.sbisec.co.jp/ETGate/?_ControlID=WPLETpfR001Control&_PageID=DefaultPID&_ActionID=DefaultAID&_DataStoreID=DSWPLETpfR001Control&OutSide=on&getFlg=on&_scpr=intpr=hn_trade';
+}
+
 // viewport の meta タグを追加（SPでの表示崩れ対策）
 const metaViewport = document.createElement('meta');
 metaViewport.name = 'viewport';
