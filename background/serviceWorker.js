@@ -27,6 +27,28 @@ let postData = null; // 送信データ
 
 // 初期化用のプロミス。複数回同時にリクエストが来ることを防ぐ
 let initialDataPromise = null;
+// 全口座データ取得用のプロミス。重複取得を防ぐ
+let allAccountDataPromise = null;
+
+/**
+ * 全口座データ（外貨建て・iDeCo 口座）を取得・キャッシュする共通ヘルパー
+ * すでにキャッシュ済みの場合はそれを返し、取得中の場合は同じプロミスを返す
+ */
+const fetchAllAccountData = () => {
+    if (cachedUsdData) return Promise.resolve({ usdAccountData: cachedUsdData, idecoAccountData: cachedIdecoData });
+    if (allAccountDataPromise) return allAccountDataPromise;
+
+    allAccountDataPromise = (async () => {
+        const [usdJson, idecoHtml] = await Promise.all([UsdAccountFetch.fetchAccountAPI(), IdecoAccountFetch.fetchAccountAPI()]);
+        cachedUsdData = UsdAccountParse.parseAccountJSON(usdJson);
+        cachedIdecoData = idecoHtml ? IdecoAccountParse.parseAccountHTML(idecoHtml) : [];
+        return { usdAccountData: cachedUsdData, idecoAccountData: cachedIdecoData };
+    })().finally(() => {
+        allAccountDataPromise = null;
+    });
+
+    return allAccountDataPromise;
+};
 
 // メッセージハンドラ定義
 const MESSAGE_HANDLERS = {
@@ -62,13 +84,11 @@ const MESSAGE_HANDLERS = {
     },
 
     /**
-     * 全口座モード切替時に一度だけ呼ばれる（外貨建て・iDeCo 口座取得）
+     * 全口座データ取得（外貨建て・iDeCo 口座）
+     * fetchAllAccountData ヘルパーに委譲することで重複取得を防ぐ
      */
     GET_ALL_ACCOUNT_DATA: async () => {
-        const [usdJson, idecoHtml] = await Promise.all([UsdAccountFetch.fetchAccountAPI(), IdecoAccountFetch.fetchAccountAPI()]);
-        cachedUsdData = UsdAccountParse.parseAccountJSON(usdJson);
-        cachedIdecoData = idecoHtml ? IdecoAccountParse.parseAccountHTML(idecoHtml) : [];
-        return { usdAccountData: cachedUsdData, idecoAccountData: cachedIdecoData };
+        return await fetchAllAccountData();
     },
 
     /**
@@ -138,22 +158,26 @@ const MESSAGE_HANDLERS = {
         // 7. 価格変動ピボットテーブルの計算
         const priceChangePivot = ExternalResourceParse.calculatePriceChangePivot(currentPrices, cachedTotaledTradingLog, cachedClosePriceData);
 
-        // 8. 内容が変化した場合のみ、各情報を外部サーバーへ送信
-        const mergedAllData = {
-            buyingPower: accountData.buyingPower,
-            cashBalance: accountData.cashBalance,
-            stocks: [...portfolioData.portfolio, ...(cachedUsdData?.stocks ?? []), ...(cachedIdecoData ?? [])],
-        };
-        const newPostData = {
-            accountData: mergedAllData,
-            tradingLog: [...processedTodayExecutions, ...cachedTotaledTradingLog],
-        };
-        if (JSON.stringify(newPostData) !== JSON.stringify(postData)) {
-            postData = newPostData;
-            ExternalResourcePost.postAccountData(postData);
-        }
+        // 8. バックグラウンドで全口座データを取得してから外部サーバーへ送信
+        // （円口座の表示をブロックしないよう await せず非同期で実行する）
+        (async () => {
+            await fetchAllAccountData();
+            const mergedAllData = {
+                buyingPower: accountData.buyingPower,
+                cashBalance: accountData.cashBalance,
+                stocks: [...portfolioData.portfolio, ...(cachedUsdData?.stocks ?? []), ...(cachedIdecoData ?? [])],
+            };
+            const newPostData = {
+                accountData: mergedAllData,
+                tradingLog: [...processedTodayExecutions, ...cachedTotaledTradingLog],
+            };
+            if (JSON.stringify(newPostData) !== JSON.stringify(postData)) {
+                postData = newPostData;
+                ExternalResourcePost.postAccountData(postData);
+            }
+        })();
 
-        // すべてまとめて返す
+        // 円口座データをすぐに返す（全口座データ取得・送信はバックグラウンドで継続）
         return {
             accountViewData, // テーブル・チャート用
             todayExecutions: formattedTodayExecutions, // 取引履歴への追記用

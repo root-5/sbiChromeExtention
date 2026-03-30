@@ -33,6 +33,13 @@ export function App() {
             setAccountData(refreshData);
             setLastUpdateTime(new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
             setLoading(false);
+
+            // 円口座表示後にバックグラウンドで全口座データをプリフェッチ
+            // （サービスワーカー側でも並行して実行されているため重複取得にはならない）
+            BackendClient.fetchAllAccountData().then((data) => {
+                setUsdAccountData(data.usdAccountData);
+                setIdecoAccountData(data.idecoAccountData);
+            });
         };
         fetchInit();
 
