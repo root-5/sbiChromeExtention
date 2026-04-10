@@ -31,41 +31,22 @@ export class ExternalResourceParse {
 
                 return { date: formattedDate, closePrice: closePrice };
             });
-        } catch (error) {
-            console.error('終値CSV解析エラー:', error);
+        } catch (e) {
+            console.error('終値CSV解析エラー:', e);
             return [];
         }
     }
 
     /**
-     * GoogleFinanceのHTMLから現在値をパース
-     * @param {string} html GoogleFinanceのHTML
-     * @returns {number|null} 現在値
-     */
-    static parseCurrentPriceHTML(html) {
-        if (!html) return null;
-        try {
-            const match = html.match(/data-last-price="([\s\S]*?)"/);
-            if (match && match[1]) {
-                const priceStr = match[1].replace(/,/g, '');
-                return Number(priceStr);
-            }
-            return null;
-        } catch (e) {
-            return null;
-        }
-    }
-
-    /**
-     * 株式価格の現在比と株式増減数を計算してピボットテーブル用データを生成
+     * 株式価格の現在比と株式増減数を計算して「株価変化率と売買数」用データを生成
      * @param {Array<{code: string, price: number}>} currentPrices 現在価格データ
      * @param {Array} totaledTradingLog 整形後取引履歴データ
      * @param {Array} closePriceData 終値データ
-     * @returns {Array} ピボットテーブル用データ
+     * @returns {Array} 「株価変化率と売買数」用データ
      * @example
      * [{date: '20240101', ratioAndQuantity: [{code: '1234', quantity: 100, ratio: 5.2}, ...]}, ...]
      */
-    static calculatePriceChangePivot(currentPrices, totaledTradingLog, closePriceData = []) {
+    static calculatePriceChangeTableData(currentPrices, totaledTradingLog, closePriceData = []) {
         const priceMap = new Map(currentPrices.map((cp) => [cp.code, cp.price]));
 
         const closePriceMap = new Map();

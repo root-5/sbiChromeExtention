@@ -17,7 +17,7 @@ export function App() {
     const [currentTime, setCurrentTime] = useState('--:--:--');
     const [lastUpdateTime, setLastUpdateTime] = useState('--:--:--');
     const [tradingLog, setTradingLog] = useState([]);
-    const [accountData, setAccountData] = useState(null); // { accountViewData, todayExecutions, priceChangePivot }
+    const [accountData, setAccountData] = useState(null); // { accountViewData, todayExecutions, priceChangeTableData }
     const [usdAccountData, setUsdAccountData] = useState(null);
     const [idecoAccountData, setIdecoAccountData] = useState(null);
     const [loading, setLoading] = useState(true);

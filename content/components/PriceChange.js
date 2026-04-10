@@ -4,13 +4,13 @@
 
 import { html } from '../utils/preact-adapter.js';
 
-export function PriceChangeComp({ priceChangePivot }) {
+export function PriceChangeComp({ priceChangeTableData }) {
     // 日付リスト
-    const dates = priceChangePivot.map((d) => d.date);
+    const dates = priceChangeTableData.map((d) => d.date);
 
     // 銘柄リスト抽出（ユニーク化してソート）
     const stockMap = new Map();
-    priceChangePivot.forEach((day) => {
+    priceChangeTableData.forEach((day) => {
         day.ratioAndQuantity.forEach((item) => {
             if (!stockMap.has(item.code)) stockMap.set(item.code, item.name);
         });
@@ -21,7 +21,7 @@ export function PriceChangeComp({ priceChangePivot }) {
 
     // データマップ作成
     const dataMap = new Map();
-    priceChangePivot.forEach((day) => {
+    priceChangeTableData.forEach((day) => {
         day.ratioAndQuantity.forEach((item) => {
             dataMap.set(`${item.code}_${day.date}`, item);
         });
