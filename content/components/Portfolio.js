@@ -82,7 +82,9 @@ export function PortfolioComp({ accountViewData }) {
 
                             return html`
                                 <tr class="border-b border-gray-200 transition-colors duration-200 ease-in-out hover:bg-gray-50 ${rowClass}">
-                                    <td class="${cellPad} text-blue-800 text-center hidden lg:table-cell">${item.code}</td>
+                                    <td class="${cellPad} text-blue-800 text-center hidden lg:table-cell">
+                                        <a href="https://sbi.ifis.co.jp/index.php?Param1=report_performance&stock_sec_code_mul=${item.code}" target="_blank">${item.code}</a>
+                                    </td>
                                     <td class="${cellPad}">${item.name}</td>
                                     <td class="${cellPad} text-right">${item.quantity}</td>
                                     <td class="${cellPad} text-right">${item.buyPrice}</td>

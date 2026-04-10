@@ -27,8 +27,9 @@ export class JpyAccountFetch {
      * @returns {Promise<string>} ポートフォリオCSV文字列
      */
     static async fetchPortfolioCSV() {
+        // portforio_id=000000000000001 は自分の口座、 000000000000002 以降だと「登録銘柄」の一覧が取得できる
         const url =
-            'https://site3.sbisec.co.jp/ETGate/?_ControlID=WPLETpfR001Control&_PageID=WPLETpfR001Rlst10&_DataStoreID=DSWPLETpfR001Control&_SeqNo=1762177445111_default_task_80402_DefaultPID_DefaultAID&_ActionID=csvdl&ref_from=1&ref_to=50&getFlg=on';
+            'https://site3.sbisec.co.jp/ETGate/?_ControlID=WPLETpfR001Control&_PageID=WPLETpfR001Rlst10&_DataStoreID=DSWPLETpfR001Control&_SeqNo=1762177445111_default_task_80402_DefaultPID_DefaultAID&_ActionID=csvdl&ref_from=1&ref_to=50&getFlg=on&portforio_id=000000000000001';
         try {
             const response = await fetch(url, {
                 method: 'GET',

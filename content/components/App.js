@@ -118,10 +118,7 @@ export function App() {
             <div class="flex flex-wrap justify-between gap-x-8 gap-y-2 items-center mb-4">
                 <div class="flex items-center gap-4">
                     <h1 class="text-xl font-bold">${isAllAccountMode ? '全口座ポートフォリオ' : '円口座ポートフォリオ'}</h1>
-                    <button
-                        onClick=${handleToggleAllAccountMode}
-                        class="px-3 py-1 text-white rounded hover:opacity-80 transition text-xs ${isAllAccountMode ? 'bg-green-700' : 'bg-blue-700'}"
-                    >
+                    <button onClick=${handleToggleAllAccountMode} class="px-3 py-1 text-white rounded hover:opacity-80 transition text-xs ${isAllAccountMode ? 'bg-green-700' : 'bg-blue-700'}">
                         ${isAllAccountMode ? '円口座表示へ' : '全口座表示へ'}
                     </button>
                 </div>
@@ -140,7 +137,9 @@ export function App() {
                           <div class="mx-auto w-[265px] lg:w-1/3 max-w-md aspect-square">
                               <${PieChartAllComp} data=${allAccountUiData.graphData} />
                           </div>
-                          <div>${html`<${PortfolioAllComp} accountViewData=${allAccountUiData} />`}</div>
+                          <div>
+                              <${PortfolioAllComp} accountViewData=${allAccountUiData} />
+                          </div>
                       </div>
                   `
                 : html`
@@ -148,7 +147,9 @@ export function App() {
                           <div class="mx-auto w-[265px] lg:w-1/3 max-w-md aspect-square">
                               <${PieChartComp} data=${accountData.accountViewData.graphData} />
                           </div>
-                          <div>${html`<${PortfolioComp} accountViewData=${uiData} />`}</div>
+                          <div>
+                              <${PortfolioComp} accountViewData=${uiData} />
+                          </div>
                       </div>
 
                       <div class="flex flex-wrap lg:flex-nowrap justify-between">
@@ -156,7 +157,7 @@ export function App() {
                           ${html`<${PriceChangeComp} priceChangePivot=${accountData.priceChangePivot} />`}
                       </div>
 
-                      ${html` <${LeverageCalculatorComp} netTotalMarketCap=${accountData.accountViewData.netTotalMarketCap} totalMarketCap=${accountData.accountViewData.totalMarketCap} /> `}
+                      <${LeverageCalculatorComp} netTotalMarketCap=${accountData.accountViewData.netTotalMarketCap} totalMarketCap=${accountData.accountViewData.totalMarketCap} />
                   `}
         </div>
     `;
