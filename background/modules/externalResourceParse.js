@@ -105,21 +105,20 @@ export class ExternalResourceParse {
                 }
             });
 
-            const filledData = allStocks.map((stock) => {
-                if (tradeMap.has(stock.code)) {
-                    return tradeMap.get(stock.code);
-                }
+            const filledData = allStocks
+                .map((stock) => {
+                    if (tradeMap.has(stock.code)) {
+                        return tradeMap.get(stock.code);
+                    }
 
-                const closePrice = closePriceMap.get(`${date}_${stock.code}`);
-                const currentPrice = priceMap.get(stock.code);
-                if (closePrice && currentPrice) {
-                    const ratio = ((currentPrice - closePrice) / closePrice) * 100;
-                    return { code: stock.code, name: stock.name, quantity: 0, ratio };
-                }
-
-                // 終値・現在価格どちらかが取得できない場合は null を設定する
-                return { code: stock.code, name: stock.name, quantity: 0, ratio: null };
-            });
+                    const closePrice = closePriceMap.get(`${date}_${stock.code}`);
+                    const currentPrice = priceMap.get(stock.code);
+                    if (closePrice && currentPrice) {
+                        const ratio = ((currentPrice - closePrice) / closePrice) * 100;
+                        return { code: stock.code, name: stock.name, quantity: 0, ratio };
+                    }
+                })
+                .filter((item) => item != null);
 
             return {
                 date: date,

@@ -53,7 +53,9 @@ export function PriceChangeComp({ priceChangeTableData }) {
                         ${stocks.map(
                             (stock) => html`
                                 <tr class="border-b border-gray-200 transition-colors duration-200 ease-in-out hover:bg-gray-50">
-                                    <td class="${cellPad} text-blue-800 text-center bg-white sticky left-0 z-[5] hidden lg:table-cell">${stock.code}</td>
+                                    <td class="${cellPad} text-blue-800 text-center bg-white sticky left-0 z-[5] hidden lg:table-cell">
+                                        <a href="https://sbi.ifis.co.jp/index.php?Param1=report_performance&stock_sec_code_mul=${stock.code}" target="_blank">${stock.code}</a>
+                                    </td>
                                     <td class="${cellPad} bg-white sticky left-0 lg:left-14 z-[5] whitespace-nowrap">${stock.name}</td>
                                     ${dates.map((date) => {
                                         const itemData = dataMap.get(`${stock.code}_${date}`);

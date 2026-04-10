@@ -12,6 +12,7 @@ import { PortfolioAllComp } from './PortfolioAll.js';
 import { LeverageCalculatorComp } from './LeverageCalculator.js';
 import { TradingLogComp } from './TradingLog.js';
 import { PriceChangeComp } from './PriceChange.js';
+import { loadUncheckedKeys, saveUncheckedKeys } from '../modules/localStorage.js';
 
 export function App() {
     const [currentTime, setCurrentTime] = useState('--:--:--');
@@ -22,6 +23,7 @@ export function App() {
     const [idecoAccountData, setIdecoAccountData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isAllAccountMode, setIsAllAccountMode] = useState(false);
+    const [uncheckedTradeKeys, setUncheckedTradeKeys] = useState(() => loadUncheckedKeys()); // 未チェックで PriceChange から除外されている取引キーの Set
 
     useEffect(() => {
         // 初期データ取得
@@ -35,7 +37,6 @@ export function App() {
             setLoading(false);
 
             // 円口座表示後にバックグラウンドで全口座データをプリフェッチ
-            // （サービスワーカー側でも並行して実行されているため重複取得にはならない）
             BackendClient.fetchAllAccountData().then((data) => {
                 setUsdAccountData(data.usdAccountData);
                 setIdecoAccountData(data.idecoAccountData);
@@ -75,6 +76,20 @@ export function App() {
         setIsAllAccountMode(!isAllAccountMode);
     };
 
+    // 取引チェックボックス切り替えハンドラ
+    const handleToggleTrade = (key) => {
+        setUncheckedTradeKeys((prev) => {
+            const nextTradeKeysSet = new Set(prev);
+            if (nextTradeKeysSet.has(key)) {
+                nextTradeKeysSet.delete(key);
+            } else {
+                nextTradeKeysSet.add(key);
+            }
+            saveUncheckedKeys(nextTradeKeysSet);
+            return nextTradeKeysSet;
+        });
+    };
+
     // データ更新用関数
     const updateData = async () => {
         const data = await BackendClient.fetchRefreshData();
@@ -108,6 +123,24 @@ export function App() {
             return String(a.tradeType || '').localeCompare(String(b.tradeType || ''));
         });
     }, [accountData, tradingLog]);
+
+    // PriceChange 表示用フィルタ済み pivot テーブルをメモ化
+    const filteredPriceChangeTableData = useMemo(() => {
+        if (!accountData?.priceChangeTableData) return [];
+        if (uncheckedTradeKeys.size === 0) return accountData.priceChangeTableData;
+
+        // 非チェックキーに一致する銘柄を除外し、全銘柄が除外された日付行も取り除く
+        return accountData.priceChangeTableData
+            .map((priceChangeRecord) => {
+                const dateStr = String(priceChangeRecord.date).replace(/\D/g, '');
+                const filteredItems = priceChangeRecord.ratioAndQuantity.filter((item) => {
+                    const tradeKey = `${dateStr}_${item.code}`;
+                    return ![...uncheckedTradeKeys].some((uncheckedKey) => uncheckedKey.includes(tradeKey));
+                });
+                return { ...priceChangeRecord, ratioAndQuantity: filteredItems };
+            })
+            .filter((record) => record.ratioAndQuantity.length > 0);
+    }, [accountData, mergedTradingLog, uncheckedTradeKeys]);
 
     // レンダリング
     if (loading) return html`<h1>Now Loading ...</h1>`;
@@ -153,8 +186,8 @@ export function App() {
                       </div>
 
                       <div class="flex flex-wrap lg:flex-nowrap justify-between">
-                          <${TradingLogComp} tradingLog=${mergedTradingLog} />
-                          ${html`<${PriceChangeComp} priceChangePivot=${accountData.priceChangePivot} />`}
+                          <${TradingLogComp} tradingLog=${mergedTradingLog} uncheckedTradeKeys=${uncheckedTradeKeys} onToggleTrade=${handleToggleTrade} />
+                          <${PriceChangeComp} priceChangeTableData=${filteredPriceChangeTableData} />
                       </div>
 
                       <${LeverageCalculatorComp} netTotalMarketCap=${accountData.accountViewData.netTotalMarketCap} totalMarketCap=${accountData.accountViewData.totalMarketCap} />
