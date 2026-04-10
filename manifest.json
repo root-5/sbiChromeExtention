@@ -9,7 +9,7 @@
         "scripting"
     ],
     "host_permissions": [
-        // SBI証券以外にも GoogleFinance, 個人用API などを利用するためにスコープを広げる
+        // SBI証券以外にも個人用 API などを利用するためにスコープを広げる
         "http://*/*",
         "https://*/*"
     ],

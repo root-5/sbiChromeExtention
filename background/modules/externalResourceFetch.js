@@ -43,20 +43,4 @@ export class ExternalResourceFetch {
             throw error;
         }
     }
-
-    /**
-     * 指定された銘柄コードの現在価格データを GoogleFinance からHTMLとして取得
-     * @param {string} code 銘柄コード
-     * @returns {Promise<{code: string, html: string}>}
-     */
-    static async fetchCurrentPriceHTML(code) {
-        const googleFinanceUrl = 'https://www.google.com/finance/quote/' + code + ':TYO?hl=jp&gl=jp';
-        try {
-            const html = await fetch(googleFinanceUrl).then((response) => response.text());
-            return { code, html };
-        } catch (error) {
-            console.warn(`Failed to fetch price for ${code}`, error);
-            return { code, html: null };
-        }
-    }
 }

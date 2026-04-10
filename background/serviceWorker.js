@@ -24,6 +24,7 @@ let cachedIdecoData = null; // iDeCo口座データ
 let cachedTotaledTradingLog = null; // 集計後の取引履歴データ
 let cachedClosePriceData = null; // 終値データ
 let postData = null; // 送信データ
+let ajaxToken = ''; // 株価取得に必要なAjaxトークン
 
 // 初期化用のプロミス。複数回同時にリクエストが来ることを防ぐ
 let initialDataPromise = null;
@@ -126,11 +127,13 @@ const MESSAGE_HANDLERS = {
         const portfolioCodes = accountViewData.graphData.filter((d) => d.code).map((d) => d.code);
         const tradingLogCodes = cachedTotaledTradingLog.map((trade) => trade.code).filter(Boolean);
         const codes = [...new Set([...portfolioCodes, ...tradingLogCodes])];
+        if (!ajaxToken) {
+            ajaxToken = await JpyAccountFetch.getAjaxToken();
+        }
         const currentPricePromises = codes.map(async (code) => {
-            const result = await ExternalResourceFetch.fetchCurrentPriceHTML(code);
             return {
                 code: code,
-                price: ExternalResourceParse.parseCurrentPriceHTML(result.html),
+                price: await JpyAccountFetch.getCurrentPrice(code, ajaxToken),
             };
         });
         const currentPrices = await Promise.all(currentPricePromises);
@@ -156,7 +159,7 @@ const MESSAGE_HANDLERS = {
         }));
 
         // 7. 価格変動ピボットテーブルの計算
-        const priceChangePivot = ExternalResourceParse.calculatePriceChangePivot(currentPrices, cachedTotaledTradingLog, cachedClosePriceData);
+        const priceChangeTableData = ExternalResourceParse.calculatePriceChangeTableData(currentPrices, cachedTotaledTradingLog, cachedClosePriceData);
 
         // 8. バックグラウンドで全口座データを取得してから外部サーバーへ送信
         // （円口座の表示をブロックしないよう await せず非同期で実行する）
@@ -181,7 +184,7 @@ const MESSAGE_HANDLERS = {
         return {
             accountViewData, // テーブル・チャート用
             todayExecutions: formattedTodayExecutions, // 取引履歴への追記用
-            priceChangePivot, // 株価変動テーブル用
+            priceChangeTableData, // 株価変動テーブル用
         };
     },
 };
