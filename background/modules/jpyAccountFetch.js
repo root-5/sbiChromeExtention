@@ -9,13 +9,7 @@ export class JpyAccountFetch {
     static async fetchAccountPage() {
         const url = 'https://site3.sbisec.co.jp/ETGate/?_ControlID=WPLETacR001Control&_PageID=DefaultPID&_DataStoreID=DSWPLETacR001Control&_ActionID=DefaultAID&getFlg=on';
         try {
-            const response = await fetch(url, {
-                method: 'GET',
-                credentials: 'include',
-            });
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            const buffer = await response.arrayBuffer();
-            return new TextDecoder('shift-jis').decode(buffer);
+            return await FetchUtils.fetchShiftJis(url);
         } catch (error) {
             console.error('HTML取得エラー:', error);
             throw error;
@@ -31,13 +25,7 @@ export class JpyAccountFetch {
         const url =
             'https://site3.sbisec.co.jp/ETGate/?_ControlID=WPLETpfR001Control&_PageID=WPLETpfR001Rlst10&_DataStoreID=DSWPLETpfR001Control&_SeqNo=1762177445111_default_task_80402_DefaultPID_DefaultAID&_ActionID=csvdl&ref_from=1&ref_to=50&getFlg=on&portforio_id=000000000000001';
         try {
-            const response = await fetch(url, {
-                method: 'GET',
-                credentials: 'include',
-            });
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            const buffer = await response.arrayBuffer();
-            return new TextDecoder('shift-jis').decode(buffer);
+            return await FetchUtils.fetchShiftJis(url);
         } catch (error) {
             console.error('CSV取得エラー:', error);
             throw error;
@@ -73,12 +61,7 @@ export class JpyAccountFetch {
         };
 
         try {
-            const res = await fetch('https://site3.sbisec.co.jp/ETGate/?' + new URLSearchParams(formData).toString(), {
-                method: 'GET',
-                credentials: 'include',
-            });
-            const buffer = await res.arrayBuffer();
-            return new TextDecoder('shift-jis').decode(new Uint8Array(buffer));
+            return await FetchUtils.fetchShiftJis('https://site3.sbisec.co.jp/ETGate/?' + new URLSearchParams(formData).toString());
         } catch (error) {
             console.error('TradingLog CSV取得エラー:', error);
             throw error;
@@ -92,12 +75,7 @@ export class JpyAccountFetch {
     static async fetchTodayExecutionPage() {
         const url = 'https://site3.sbisec.co.jp/ETGate/WPLETagR001Control/DefaultPID/DefaultAID?OutSide=on&getFlg=on&int_pr1=150313_cmn_gnavi:1_dmenu_09';
         try {
-            const res = await fetch(url, {
-                method: 'GET',
-                credentials: 'include',
-            });
-            const buffer = await res.arrayBuffer();
-            return new TextDecoder('shift-jis').decode(new Uint8Array(buffer));
+            return await FetchUtils.fetchShiftJis(url);
         } catch (error) {
             console.error('TodayExecution HTML取得エラー:', error);
             throw error;
@@ -111,12 +89,7 @@ export class JpyAccountFetch {
     static async getAjaxToken() {
         const url = `https://site3.sbisec.co.jp/ETGate/?_ControlID=WPLETsiR001Control&_PageID=WPLETsiR001Idtl10&_DataStoreID=DSWPLETsiR001Control&_ActionID=stockDetail&s_rkbn=2&s_btype=&i_stock_sec=7203&i_dom_flg=1&i_exchange_code=JPN&i_output_type=0&exchange_code=TKY&stock_sec_code_mul=7203&ref_from=1&ref_to=20&wstm4130_sort_id=&wstm4130_sort_kbn=&qr_keyword=1&qr_suggest=1&qr_sort=1`;
         try {
-            const res = await fetch(url, {
-                method: 'GET',
-                credentials: 'include',
-            });
-            const buffer = await res.arrayBuffer();
-            const html = new TextDecoder('shift-jis').decode(new Uint8Array(buffer));
+            const html = await FetchUtils.fetchShiftJis(url);
             const ajaxTokenMatch = html.match(/id="ajaxToken" value="([\w-]+)"/);
             return ajaxTokenMatch[1];
         } catch (error) {
