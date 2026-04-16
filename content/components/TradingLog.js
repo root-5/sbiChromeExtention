@@ -35,7 +35,7 @@ export function TradingLogComp({ tradingLog, uncheckedTradeKeys, onToggleTrade }
                         <tr>
                             <th class="${cellPad}"></th>
                             <th class="${cellPad}">日付</th>
-                            <th class="${cellPad} hidden lg:table-cell">コード</th>
+                            <th class="${cellPad} hidden">コード</th>
                             <th class="${cellPad}">銘柄名</th>
                             <th class="${cellPad}">取引</th>
                             <th class="${cellPad}">株数</th>
@@ -60,7 +60,7 @@ export function TradingLogComp({ tradingLog, uncheckedTradeKeys, onToggleTrade }
                                         />
                                     </td>
                                     <td class="${cellPad}">${item.date}</td>
-                                    <td class="${cellPad} text-blue-800 text-center hidden lg:table-cell">${item.code}</td>
+                                    <td class="${cellPad} text-blue-800 text-center hidden">${item.code}</td>
                                     <td class="${cellPad}">${item.name}</td>
                                     <td class="${cellPad} text-center font-semibold ${tradeTypeClass}">${item.tradeType}</td>
                                     <td class="${cellPad} text-right">${item.quantity}</td>

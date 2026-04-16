@@ -4,7 +4,7 @@
 
 import { html, useEffect, useRef } from '../utils/preact-adapter.js';
 
-export function PieChartComp({ data }) {
+export function PieChartComp({ data, baseHue = 230 }) {
     const canvasRef = useRef(null);
     const chartInstanceRef = useRef(null);
 
@@ -13,12 +13,12 @@ export function PieChartComp({ data }) {
         const labels = data.map((item) => item.name);
         const chartData = data.map((item) => item.marketCap);
 
-        // 青系統のカラーパレット生成
+        // カラーパレット生成
         const totalColors = Math.max(data.length, 10);
         const colors = [];
         for (let i = 0; i < totalColors; i++) {
             const lightness = 20 + (135 / (totalColors - 1)) * i;
-            colors.push(`hsl(230, 45%, ${lightness}%)`);
+            colors.push(`hsl(${baseHue}, 45%, ${lightness}%)`);
         }
 
         if (chartInstanceRef.current) {

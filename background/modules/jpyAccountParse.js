@@ -378,7 +378,7 @@ export class JpyAccountParse {
      * @example
      * {
      *   graphData: [...],
-     *   tableTextData: [...],
+     *   tableData: [...],
      *   totalMarketCap: 1000000,
      *   netTotalMarketCap: 1200000,
      *   ...
@@ -431,60 +431,41 @@ export class JpyAccountParse {
             };
         });
 
-        const tableTextData = graphData.map((item) => {
-            if (item.name === '調整後現金') {
+        const tableData = graphData
+            .filter((item) => item.name !== '調整後現金')
+            .map((item) => {
+                let dayChangeRate = 0;
+                if (item.dayChange || item.dayChange === 0) {
+                    dayChangeRate = item.currentPrice && item.dayChange ? (item.dayChange / (item.currentPrice - item.dayChange)) * 100 : 0;
+                }
+
+                let profitRate = 0;
+                if (item.buyPrice && item.quantity) {
+                    profitRate = (item.profitAndLoss / (item.buyPrice * item.quantity)) * 100;
+                }
+
                 return {
+                    code: item.code,
                     name: item.name,
+                    quantity: item.quantity,
+                    buyPrice: item.buyPrice,
+                    currentPrice: item.currentPrice,
+                    dayChange: item.dayChange,
+                    dayChangeRate: dayChangeRate,
+                    profitAndLoss: item.profitAndLoss,
+                    profitRate: profitRate,
                     marketCap: item.marketCap,
-                    marketCapText: item.marketCap.toLocaleString(),
+                    depositType: item.depositType || '特定',
+                    currencyType: item.currencyType || '円建',
+                    marginType: item.marginType || '現物',
                 };
-            }
+            });
 
-            let dayChangeRateText = '-';
-            let dayChangeDiffText = '-';
-            if (item.dayChange || item.dayChange === 0) {
-                const dayChangeRate = item.currentPrice && item.dayChange ? (item.dayChange / (item.currentPrice - item.dayChange)) * 100 : 0;
-                dayChangeRateText = `${dayChangeRate >= 0 ? '+' : ''}${dayChangeRate.toFixed(2)}`;
-                dayChangeDiffText = `${item.dayChange >= 0 ? '+' : ''}${item.dayChange.toLocaleString()}`;
-            }
-
-            let profitAndLossRateText = '-';
-            let profitAndLossDiffText = '-';
-            let profitRate = 0;
-            if (item.buyPrice && item.quantity) {
-                profitRate = (item.profitAndLoss / (item.buyPrice * item.quantity)) * 100;
-                profitAndLossRateText = `${profitRate >= 0 ? '+' : ''}${profitRate.toFixed(2)}`;
-                profitAndLossDiffText = `${item.profitAndLoss >= 0 ? '+' : ''}${item.profitAndLoss.toLocaleString()}`;
-            }
-
-            return {
-                code: item.code,
-                name: item.name,
-                quantity: item.quantity,
-                quantityText: item.quantity.toLocaleString(),
-                buyPrice: item.buyPrice,
-                buyPriceText: Math.floor(item.buyPrice).toLocaleString(),
-                currentPrice: item.currentPrice,
-                currentPriceText: item.currentPrice.toLocaleString(),
-                dayChangeRate: dayChangeRateText,
-                dayChangeDiff: dayChangeDiffText,
-                profitAndLossRate: profitAndLossRateText,
-                profitAndLossDiff: profitAndLossDiffText,
-                marketCap: item.marketCap,
-                marketCapText: item.marketCap.toLocaleString(),
-                profitAndLoss: item.profitAndLoss,
-                profitRate: profitRate, // 数値として追加
-                depositType: item.depositType || '特定',
-                currencyType: item.currencyType || '円建',
-                marginType: item.marginType || '現物',
-            };
-        });
-
-        const totalProfit = tableTextData.reduce((sum, item) => sum + (item.profitAndLoss || 0), 0);
+        const totalProfit = tableData.reduce((sum, item) => sum + (item.profitAndLoss || 0), 0);
 
         return {
             graphData,
-            tableTextData,
+            tableData,
             totalMarketCap,
             netTotalMarketCap,
             leverageManagementData,

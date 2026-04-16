@@ -6,9 +6,7 @@ import { html, useState, useEffect, useMemo } from '../utils/preact-adapter.js';
 import { BackendClient } from '../modules/backendClient.js';
 import { UIDataAdapter } from '../modules/uiDataAdapter.js';
 import { PieChartComp } from './PieChart.js';
-import { PieChartAllComp } from './PieChartAll.js';
 import { PortfolioComp } from './Portfolio.js';
-import { PortfolioAllComp } from './PortfolioAll.js';
 import { LeverageCalculatorComp } from './LeverageCalculator.js';
 import { TradingLogComp } from './TradingLog.js';
 import { PriceChangeComp } from './PriceChange.js';
@@ -111,36 +109,13 @@ export function App() {
     // 取引履歴と当日約定をマージしてメモ化
     const mergedTradingLog = useMemo(() => {
         if (!accountData) return tradingLog;
-        const normalizeDate = (dateText) => String(dateText || '').replace(/\D/g, '');
-
-        return [...tradingLog, ...accountData.todayExecutions].sort((a, b) => {
-            const dateCompare = normalizeDate(b.date).localeCompare(normalizeDate(a.date));
-            if (dateCompare !== 0) return dateCompare;
-
-            const codeCompare = String(a.code || '').localeCompare(String(b.code || ''));
-            if (codeCompare !== 0) return codeCompare;
-
-            return String(a.tradeType || '').localeCompare(String(b.tradeType || ''));
-        });
+        return UIDataAdapter.mergeTradingLog(tradingLog, accountData.todayExecutions);
     }, [accountData, tradingLog]);
 
     // PriceChange 表示用フィルタ済み pivot テーブルをメモ化
     const filteredPriceChangeTableData = useMemo(() => {
-        if (!accountData?.priceChangeTableData) return [];
-        if (uncheckedTradeKeys.size === 0) return accountData.priceChangeTableData;
-
-        // 非チェックキーに一致する銘柄を除外し、全銘柄が除外された日付行も取り除く
-        return accountData.priceChangeTableData
-            .map((priceChangeRecord) => {
-                const dateStr = String(priceChangeRecord.date).replace(/\D/g, '');
-                const filteredItems = priceChangeRecord.ratioAndQuantity.filter((item) => {
-                    const tradeKey = `${dateStr}_${item.code}`;
-                    return ![...uncheckedTradeKeys].some((uncheckedKey) => uncheckedKey.includes(tradeKey));
-                });
-                return { ...priceChangeRecord, ratioAndQuantity: filteredItems };
-            })
-            .filter((record) => record.ratioAndQuantity.length > 0);
-    }, [accountData, mergedTradingLog, uncheckedTradeKeys]);
+        return UIDataAdapter.filterPriceChangeTableData(accountData?.priceChangeTableData, uncheckedTradeKeys);
+    }, [accountData, uncheckedTradeKeys]);
 
     // レンダリング
     if (loading) return html`<h1>Now Loading ...</h1>`;
@@ -163,33 +138,22 @@ export function App() {
                     <span>${lastUpdateTime}</span>
                 </div>
             </div>
+            <div class="flex flex-col lg:flex-row lg:gap-8">
+                <div class="mx-auto w-[265px] lg:w-1/3 max-w-md aspect-square">
+                    <${PieChartComp} data=${isAllAccountMode ? allAccountUiData.graphData : accountData.accountViewData.graphData} baseHue=${isAllAccountMode ? 120 : 230} />
+                </div>
+                <div>
+                    <${PortfolioComp} accountViewData=${isAllAccountMode ? allAccountUiData : uiData} isAllAccountMode=${isAllAccountMode} />
+                </div>
+            </div>
 
             ${isAllAccountMode
-                ? html`
-                      <div class="flex flex-col lg:flex-row lg:gap-8">
-                          <div class="mx-auto w-[265px] lg:w-1/3 max-w-md aspect-square">
-                              <${PieChartAllComp} data=${allAccountUiData.graphData} />
-                          </div>
-                          <div>
-                              <${PortfolioAllComp} accountViewData=${allAccountUiData} />
-                          </div>
-                      </div>
-                  `
+                ? ''
                 : html`
-                      <div class="flex flex-col lg:flex-row lg:gap-8">
-                          <div class="mx-auto w-[265px] lg:w-1/3 max-w-md aspect-square">
-                              <${PieChartComp} data=${accountData.accountViewData.graphData} />
-                          </div>
-                          <div>
-                              <${PortfolioComp} accountViewData=${uiData} />
-                          </div>
-                      </div>
-
                       <div class="flex flex-wrap lg:flex-nowrap justify-between">
                           <${TradingLogComp} tradingLog=${mergedTradingLog} uncheckedTradeKeys=${uncheckedTradeKeys} onToggleTrade=${handleToggleTrade} />
                           <${PriceChangeComp} priceChangeTableData=${filteredPriceChangeTableData} />
                       </div>
-
                       <${LeverageCalculatorComp} netTotalMarketCap=${accountData.accountViewData.netTotalMarketCap} totalMarketCap=${accountData.accountViewData.totalMarketCap} />
                   `}
         </div>
