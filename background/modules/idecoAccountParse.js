@@ -50,7 +50,7 @@ export class IdecoAccountParse {
                 depositType: 'iDeCo',
                 marginType: '現物',
                 code: '-',
-                name: row[1],
+                name: row[1] == '-' ? '待機資金' : row[1],
                 quantity: 1,
                 buyPrice: cost,
                 currentPrice: marketCap,

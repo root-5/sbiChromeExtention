@@ -1,7 +1,11 @@
+import { FetchUtils } from './_fetchUtils.js';
+
 /**
  * 円建口座情報関連のリソースリクエストを担当するモジュール
  */
 export class JpyAccountFetch {
+    static TRADING_LOG_PERIOD_DAYS = 90; // 取引履歴を取得する期間（日数）
+
     /**
      * 口座管理ページのHTMLを取得
      * @returns {Promise<string>} 口座管理ページのHTML文字列
@@ -45,7 +49,7 @@ export class JpyAccountFetch {
             return `${year}${month}${day}`;
         };
         const today = new Date();
-        const monthAgo = new Date(today.getTime() - 31 * 24 * 60 * 60 * 1000);
+        const monthAgo = new Date(today.getTime() - JpyAccountFetch.TRADING_LOG_PERIOD_DAYS * 24 * 60 * 60 * 1000);
         const todayStr = formatDate(today);
         const monthAgoStr = formatDate(monthAgo);
 
